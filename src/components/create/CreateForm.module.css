@@ -1,0 +1,89 @@
+/* Ported from create-user-form.component.scss. Only the rules Tailwind cannot
+   state precisely live here — the sliding switch thumb, the section underline,
+   and the form's own scrollbar. */
+
+/* ── account-type switch ─────────────────────────────────────────────────────
+   The thumb is a sibling behind both buttons so the labels stay readable while
+   it slides. Both options are forced to equal width, which is what lets a flat
+   50% keep the pill aligned under the much longer "Dummy Platform User". */
+.switchThumb {
+  position: absolute;
+  top: 4px;
+  right: auto;
+  bottom: 4px;
+  left: 4px;
+  width: calc(50% - 5px);
+  border-radius: 999px;
+  background: #b9cfd1;
+  box-shadow: 0 1px 4px rgba(20, 60, 95, 0.16);
+  transition: transform 0.28s cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+.switchThumbRoot {
+  transform: translateX(calc(100% + 3px));
+}
+
+:global(.dark) .switchThumb {
+  background: rgba(0, 145, 255, 0.42);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .switchThumb {
+    transition: none;
+  }
+}
+
+/* ── form scroll ─────────────────────────────────────────────────────────────
+   The 8px teal rail the Angular container uses, rather than the shell's. */
+.formScroll {
+  scrollbar-width: auto;
+  scrollbar-color: #b2cccb transparent;
+}
+
+.formScroll::-webkit-scrollbar {
+  width: 8px;
+}
+
+.formScroll::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.formScroll::-webkit-scrollbar-thumb {
+  border-radius: 999px;
+  background: #b2cccb;
+}
+
+.formScroll::-webkit-scrollbar-thumb:hover {
+  background: #9fc2c1;
+}
+
+:global(.dark) .formScroll {
+  scrollbar-color: #036fb6 transparent;
+}
+
+:global(.dark) .formScroll::-webkit-scrollbar-thumb {
+  background: #036fb6;
+}
+
+/* ── section rules ───────────────────────────────────────────────────────────
+   0.3px hairlines; Tailwind's border scale has no sub-pixel step. */
+.sectionRule {
+  border-bottom: 0.3px solid #003f82;
+}
+
+:global(.dark) .sectionRule {
+  border-bottom-color: rgba(142, 214, 255, 0.3);
+}
+
+/* Native select arrow — its stroke colour is baked into the data URI, so it
+   needs one declaration per theme. */
+.select {
+  background-image: url("data:image/svg+xml;charset=utf-8,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%235D96BD' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='m6 9 6 6 6-6'/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right 12px center;
+  background-size: 15px 15px;
+}
+
+:global(.dark) .select {
+  background-image: url("data:image/svg+xml;charset=utf-8,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23bde1ff' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='m6 9 6 6 6-6'/%3E%3C/svg%3E");
+}

@@ -1,0 +1,39 @@
+/* Ported from sidebar.component.scss `.sidebar.collapsible-rail:hover`. */
+
+/*
+  Expanded over the page (rail mode, hovered).
+
+  The Angular rule is `background: rgba(255,255,255,0.25)` plus
+  `backdrop-filter: blur(16px)` — the blur is what makes that 25% wash read as
+  a solid panel there. Backdrop blur is unreliable inside the fixed, clipped
+  shell here (the page behind stayed sharp and legible through the sidebar), so
+  the panel paints the theme artwork itself and washes it, the same trick the
+  quick-create overlay uses. `cover` + `fixed` are the values .shell-backdrop
+  uses, so the artwork lines up pixel-for-pixel with the page behind and the
+  seam is invisible. The blur stays on for browsers that do honour it.
+*/
+.railExpanded {
+  background-image:
+    linear-gradient(rgba(255, 255, 255, 0.55), rgba(255, 255, 255, 0.55)),
+    url("/assets/images/light-theme-background.jpg");
+  background-size: cover, cover;
+  background-position: center, center;
+  background-repeat: no-repeat, no-repeat;
+  background-attachment: fixed, fixed;
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  border-right: 1px solid rgba(255, 255, 255, 0.7);
+  box-shadow:
+    0 10px 15px -3px rgba(15, 23, 42, 0.1),
+    0 4px 6px -4px rgba(15, 23, 42, 0.1);
+}
+
+:global(.dark) .railExpanded {
+  background-image:
+    linear-gradient(rgba(4, 20, 38, 0.72), rgba(4, 20, 38, 0.72)),
+    url("/assets/images/dark-theme-background.png");
+  border-right-color: rgba(3, 152, 255, 0.16);
+  box-shadow:
+    0 10px 15px -3px rgba(0, 0, 0, 0.24),
+    0 4px 6px -4px rgba(0, 0, 0, 0.22);
+}

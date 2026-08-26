@@ -1,0 +1,107 @@
+/* Ported from client-directory-shared.scss / client-list.component.scss.
+   Everything expressible as a utility lives in the template; this file holds
+   only what Tailwind cannot state: the overlay scroll rails, the <img> recolour
+   filters, and the field hairline's exact 56px inset. */
+
+/* ── column scroll rails ─────────────────────────────────────────────────────
+   Invisible until the pane is hovered, so the glass background is never cut by
+   a permanent track. */
+.columnScroll {
+  scrollbar-width: thin;
+  scrollbar-color: transparent transparent;
+  overscroll-behavior: contain;
+  -webkit-overflow-scrolling: touch;
+}
+
+.columnScroll::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+  background: transparent;
+}
+
+.columnScroll::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.columnScroll::-webkit-scrollbar-thumb {
+  min-height: 32px;
+  border: none;
+  border-radius: 900px;
+  background-color: transparent;
+  transition: background-color 0.15s ease;
+}
+
+.columnBody:hover .columnScroll,
+.columnScroll:hover {
+  scrollbar-color: #b2cccb transparent;
+}
+
+.columnBody:hover .columnScroll::-webkit-scrollbar-thumb,
+.columnScroll:hover::-webkit-scrollbar-thumb {
+  background-color: #b2cccb;
+}
+
+.columnScroll::-webkit-scrollbar-thumb:hover {
+  background-color: #9fc2c1;
+}
+
+:global(.dark) .columnBody:hover .columnScroll,
+:global(.dark) .columnScroll:hover {
+  scrollbar-color: #036fb6 transparent;
+}
+
+:global(.dark) .columnBody:hover .columnScroll::-webkit-scrollbar-thumb,
+:global(.dark) .columnScroll:hover::-webkit-scrollbar-thumb {
+  background-color: #036fb6;
+}
+
+/* ── nav glyphs ──────────────────────────────────────────────────────────────
+   An <img> cannot inherit currentColor, so the SVGs are recoloured to
+   #1d4268 / #9ED4FF with the filters client-list.component.scss uses. */
+.navIcon {
+  filter: brightness(0) saturate(100%) invert(21%) sepia(31%) saturate(1314%)
+    hue-rotate(174deg) brightness(94%) contrast(90%);
+}
+
+:global(.dark) .navIcon {
+  filter: brightness(0) saturate(100%) invert(84%) sepia(20%) saturate(900%)
+    hue-rotate(180deg) brightness(105%) contrast(101%);
+}
+
+/* ── detail field hairline ───────────────────────────────────────────────────
+   Starts past the 36px icon plus its 20px gap, so the rules line up under the
+   text column rather than running the full card width. */
+.fieldRow::after {
+  content: "";
+  position: absolute;
+  right: 0;
+  bottom: 0;
+  left: 56px;
+  height: 1px;
+  background: #e5e7eb;
+}
+
+:global(.dark) .fieldRow::after {
+  background: rgba(158, 212, 255, 0.15);
+}
+
+/* ── search input ────────────────────────────────────────────────────────────
+   A three-layer shadow the utility scale has no equivalent for. */
+.searchShell {
+  box-shadow:
+    0 4px 6px rgba(0, 0, 0, 0.05),
+    0 1px 3px rgba(0, 0, 0, 0.1),
+    inset 0 1px 0 rgba(255, 255, 255, 0.1);
+}
+
+.searchShell:focus-within {
+  box-shadow:
+    0 5px 15px rgba(0, 0, 0, 0.1),
+    0 1px 4px rgba(0, 0, 0, 0.1),
+    inset 0 2px 0 rgba(255, 255, 255, 0.2);
+}
+
+:global(.dark) .searchShell,
+:global(.dark) .searchShell:focus-within {
+  box-shadow: none;
+}
