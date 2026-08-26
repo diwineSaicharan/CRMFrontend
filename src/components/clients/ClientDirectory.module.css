@@ -3,70 +3,101 @@
    only what Tailwind cannot state: the overlay scroll rails, the <img> recolour
    filters, and the field hairline's exact 56px inset. */
 
-/* ── column scroll rails ─────────────────────────────────────────────────────
-   Invisible until the pane is hovered, so the glass background is never cut by
-   a permanent track. */
+/* ── column scroll ───────────────────────────────────────────────────────────
+   The scrollbar takes NO layout width. `client-column-scroll` in the reference
+   is `::-webkit-scrollbar { width: 0px !important; height: 0px !important }`,
+   and the visible thumb is a separate overlay drawn by the
+   ClientColumnScrollHost directive — nothing is subtracted from the column.
+
+   Giving it a real 6px track (as this file first did) narrowed every scrolling
+   pane by 6px, which is what pushed the nav, list and detail columns out of
+   line with the reference. `scrollbar-width: none` keeps non-WebKit engines
+   from reserving a gutter either. */
 .columnScroll {
-  scrollbar-width: thin;
-  scrollbar-color: transparent transparent;
+  scrollbar-width: none;
   overscroll-behavior: contain;
   -webkit-overflow-scrolling: touch;
 }
 
 .columnScroll::-webkit-scrollbar {
-  width: 6px;
-  height: 6px;
+  width: 0 !important;
+  height: 0 !important;
   background: transparent;
 }
 
-.columnScroll::-webkit-scrollbar-track {
-  background: transparent;
+/* ── overlay scrollbar ───────────────────────────────────────────────────────
+   `.client-column-scrollbar-rail` / `-thumb` from styles.scss, driven by
+   ColumnScroll.tsx. The rail is absolutely positioned inside the column's
+   existing wrapper, so it costs no layout width and shifts nothing: it only
+   paints over the last 8px of a column that is already scrolling. */
+.scrollHost {
+  position: relative;
 }
 
-.columnScroll::-webkit-scrollbar-thumb {
-  min-height: 32px;
-  border: none;
-  border-radius: 900px;
+.scrollRail {
+  position: absolute;
+  top: 0;
+  right: 0;
+  bottom: 0;
+  width: 8px;
+  padding: 1px;
+  border-radius: 999px;
   background-color: transparent;
-  transition: background-color 0.15s ease;
+  pointer-events: auto;
+  touch-action: none;
+  user-select: none;
+  opacity: 0;
+  /* Fades in at once on hover; the 780ms delay is on the way *out*, so the
+     thumb does not vanish the instant the pointer leaves the column. */
+  transition:
+    opacity 0.16s ease 780ms,
+    background-color 0.2s ease;
+  z-index: 2;
 }
 
-.columnBody:hover .columnScroll,
-.columnScroll:hover {
-  scrollbar-color: #b2cccb transparent;
+.scrollHost:hover .scrollRail,
+.scrollRail.isDragging {
+  opacity: 1;
+  transition:
+    opacity 0.12s ease,
+    background-color 0.2s ease;
 }
 
-.columnBody:hover .columnScroll::-webkit-scrollbar-thumb,
-.columnScroll:hover::-webkit-scrollbar-thumb {
+.scrollThumb {
+  position: absolute;
+  top: 0;
+  right: 0;
+  width: 4px;
+  min-height: 32px;
+  border-radius: 999px;
   background-color: #b2cccb;
+  touch-action: none;
+  user-select: none;
+  transition:
+    background-color 0.2s ease,
+    width 0.2s ease;
 }
 
-.columnScroll::-webkit-scrollbar-thumb:hover {
+.scrollRail:hover .scrollThumb,
+.scrollRail.isDragging .scrollThumb,
+.scrollThumb:hover {
+  width: 6px;
   background-color: #9fc2c1;
 }
 
-:global(.dark) .columnBody:hover .columnScroll,
-:global(.dark) .columnScroll:hover {
-  scrollbar-color: #036fb6 transparent;
+/* Dark thumb from `.admin-dark-mode .client-column-scrollbar-thumb`. */
+:global(.dark) .scrollThumb {
+  background-color: rgba(3, 111, 182, 0.82);
 }
 
-:global(.dark) .columnBody:hover .columnScroll::-webkit-scrollbar-thumb,
-:global(.dark) .columnScroll:hover::-webkit-scrollbar-thumb {
-  background-color: #036fb6;
+:global(.dark) .scrollRail:hover .scrollThumb,
+:global(.dark) .scrollRail.isDragging .scrollThumb,
+:global(.dark) .scrollThumb:hover {
+  background-color: #0398ff;
 }
 
-/* ── nav glyphs ──────────────────────────────────────────────────────────────
-   An <img> cannot inherit currentColor, so the SVGs are recoloured to
-   #1d4268 / #9ED4FF with the filters client-list.component.scss uses. */
-.navIcon {
-  filter: brightness(0) saturate(100%) invert(21%) sepia(31%) saturate(1314%)
-    hue-rotate(174deg) brightness(94%) contrast(90%);
-}
-
-:global(.dark) .navIcon {
-  filter: brightness(0) saturate(100%) invert(84%) sepia(20%) saturate(900%)
-    hue-rotate(180deg) brightness(105%) contrast(101%);
-}
+/* The nav glyphs used to be <img> recoloured by filter; they are inline SVG in
+   components/ui/icons.tsx now and inherit the row's colour directly. */
 
 /* ── detail field hairline ───────────────────────────────────────────────────
    Starts past the 36px icon plus its 20px gap, so the rules line up under the

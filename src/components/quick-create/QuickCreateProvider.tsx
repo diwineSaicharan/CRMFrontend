@@ -1,10 +1,13 @@
 "use client";
 
+import { usePathname } from "next/navigation";
 import {
   createContext,
   useCallback,
   useContext,
+  useEffect,
   useMemo,
+  useRef,
   useState,
   type ReactNode,
 } from "react";
@@ -29,6 +32,17 @@ export function QuickCreateProvider({ children }: { children: ReactNode }) {
 
   const open = useCallback((next: QuickCreateKind) => setKind(next), []);
   const close = useCallback(() => setKind(null), []);
+
+  // Sidebar links route fine underneath the sheet, but nothing dismissed it —
+  // so the new page loaded behind a form that still covered it, and the
+  // navigation read as broken. Any route change closes the sheet.
+  const pathname = usePathname();
+  const lastPath = useRef(pathname);
+  useEffect(() => {
+    if (lastPath.current === pathname) return;
+    lastPath.current = pathname;
+    setKind(null);
+  }, [pathname]);
 
   const value = useMemo(() => ({ kind, open, close }), [kind, open, close]);
 

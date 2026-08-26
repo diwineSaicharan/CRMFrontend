@@ -20,8 +20,18 @@ export const FORM_CONTROL =
   "hover:border-[rgba(66,133,244,0.5)] " +
   "focus:border-[#4285F4] focus:shadow-[0_0_0_2px_rgba(66,133,244,0.12)] focus:outline-none " +
   "disabled:cursor-not-allowed disabled:bg-[rgba(245,245,245,0.5)] " +
+  // `.input-container .form-control` in dark: rgba(3,53,97,1) fill, #bde1ff ink,
+  // 0.5px rgba(142,214,255,0.3) edge. Placeholders are the dimmer #6fb7f0 —
+  // only `.password-container` keeps them at full #bde1ff, hence the variant.
   "dark:border-[rgba(142,214,255,0.3)] dark:bg-[rgba(3,53,97,1)] dark:text-[#bde1ff] " +
-  "dark:placeholder:text-[#bde1ff]";
+  "dark:placeholder:text-[#6fb7f0]";
+
+/** Password fields: `.password-container .form-control::placeholder` is #bde1ff. */
+export const PASSWORD_CONTROL =
+  FORM_CONTROL.replace(
+    "dark:placeholder:text-[#6fb7f0]",
+    "dark:placeholder:text-[#bde1ff]",
+  );
 
 export const SELECT_CONTROL =
   FORM_CONTROL +
@@ -31,13 +41,14 @@ export const SELECT_CONTROL =
   "dark:[&>option]:bg-[#033561] dark:[&>option]:text-[#bde1ff]";
 
 export const HELPER_TEXT =
-  "mt-1.5 flex items-center gap-1 text-[10px] text-[#5D96BD] dark:text-[#8ed6ff]";
+  // `.helper-text` has no dark override in the reference — it stays #5D96BD.
+  "mt-1.5 flex items-center gap-1 text-[10px] text-[#5D96BD]";
 
 export const SECTION_TITLE =
   "relative mb-1 text-[16px] leading-[1.2] font-bold tracking-[-0.2px] text-headings dark:text-[#bde1ff]";
 
 export const SECTION_DESCRIPTION =
-  "m-0 p-0 text-[10px] italic text-[#5D96BD] dark:text-[#8ed6ff]";
+  "m-0 p-0 text-[10px] italic text-[#5D96BD] dark:text-[#bde1ff]";
 
 /** `.form-section` — a translucent card with a hairline and a lifting shadow. */
 export function FormSection({
@@ -53,7 +64,8 @@ export function FormSection({
         "mb-3.5 rounded-[10px] border border-[rgba(66,133,244,0.08)] bg-white/40 p-3.5 " +
         "shadow-[0_2px_12px_rgba(0,0,0,0.03)] transition-all duration-300 " +
         "hover:border-[rgba(66,133,244,0.15)] hover:shadow-[0_4px_16px_rgba(66,133,244,0.08)] " +
-        "dark:border-[rgba(0,145,255,0.15)] dark:bg-[rgba(0,145,255,0.06)] " +
+        // `.form-section` dark: rgba(2,51,94,0.4) over a rgba(158,212,255,0.08) edge.
+        "dark:border-[rgba(158,212,255,0.08)] dark:bg-[rgba(2,51,94,0.4)] dark:backdrop-blur-none " +
         className
       }
     >
@@ -88,7 +100,7 @@ export function InputShell({
   return (
     <div className="relative bg-transparent">
       {icon && (
-        <span className="material-icons pointer-events-none absolute top-1/2 left-3 -translate-y-1/2 text-[18px] text-[#5D96BD] dark:text-[#8ed6ff]">
+        <span className="material-icons pointer-events-none absolute top-1/2 left-3 -translate-y-1/2 text-[18px] text-[#5D96BD] dark:text-[#bde1ff]">
           {icon}
         </span>
       )}

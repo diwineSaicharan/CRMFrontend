@@ -64,19 +64,21 @@ export function ClientsPage({ entity }: { entity: ClientEntityKey }) {
   return (
     <div className="flex min-h-0 w-full min-w-0 flex-1 flex-col overflow-hidden">
       {/* ── toolbar ──────────────────────────────────────────────────────── */}
-      <div className="min-w-0 shrink-0 pb-3">
+      {/* Above 1440px the reference tightens the toolbar to `padding: 0 0 0.6rem`
+          and indents the heading by 0.7rem. */}
+      <div className="min-w-0 shrink-0 pb-3 min-[1440px]:pb-[0.6rem]">
         <div className="mt-1 flex w-full min-w-0 items-center gap-5">
-          <h2 className="m-0 shrink-0 font-condensed text-[15px] leading-none font-medium whitespace-nowrap text-headings dark:text-[#bde1ff]">
+          <h2 className="m-0 shrink-0 font-condensed text-[15px] leading-none font-medium whitespace-nowrap text-headings min-[1440px]:pl-[0.7rem] dark:text-[#bde1ff]">
             {SEARCH_LABEL[entity]}
           </h2>
 
           <div
             className={
               styles.searchShell +
-              // 384px is the reference width; capped rather than free-growing
-              // because the admin header also carries the balance pills, which
-              // are what stop the field spanning the window there.
-              " flex h-10 w-96 max-w-[480px] flex-[1_1_auto] items-center rounded-full border-[0.5px] border-white bg-white/15 px-2.5 backdrop-blur-[10px] transition-all duration-300 " +
+              // 384px, and capped there: `.search-input-container` is
+              // `max-width: 384px` above 1440px, and the balance pills that stop
+              // it growing below that breakpoint are not ported yet.
+              " flex h-10 w-96 max-w-[384px] flex-[1_1_auto] items-center rounded-full border-[0.5px] border-white bg-white/15 px-2.5 backdrop-blur-[10px] transition-all duration-300 " +
               "focus-within:border-white focus-within:bg-white/25 " +
               "dark:border-[#05498d] dark:bg-transparent dark:focus-within:border-white"
             }
@@ -128,8 +130,11 @@ export function ClientsPage({ entity }: { entity: ClientEntityKey }) {
         </div>
       </div>
 
-      {/* ── directory ────────────────────────────────────────────────────── */}
-      <div className="mt-0.5 min-h-0 flex-auto overflow-visible">
+      {/* ── directory ─────────────────────────────────────────────────────
+          `app-client-list`'s own `:host` carries `padding: 1px` on top of the
+          `margin-top: 2px` the clients section gives it. Missing that 1px left
+          the whole glass panel a pixel up and to the left of the reference. */}
+      <div className="mt-0.5 min-h-0 flex-auto overflow-visible p-px">
         <ClientDirectory
           entity={entity}
           clients={filtered}

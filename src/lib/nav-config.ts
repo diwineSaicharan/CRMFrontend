@@ -94,7 +94,7 @@ export const NAV_SECTIONS: NavSection[] = [
     items: [
       {
         id: "working-deposit-withdrawal",
-        label: "Working Deposit Withdraw",
+        label: "Deposit Withdrawal",
         icon: "wallet",
         href: "/working-deposit-withdrawal",
       },

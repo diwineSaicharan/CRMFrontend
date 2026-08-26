@@ -11,49 +11,24 @@ import {
   getClientAvatarColor,
   getClientInitials,
 } from "./client-directory.config";
+import { CLIENT_NAV_ICONS } from "@/components/ui/icons";
 import { ClientDetail } from "./ClientDetail";
-import styles from "./ClientDirectory.module.css";
+import { ColumnScroll } from "./ColumnScroll";
 
 /* Class strings ported from client-list.component.html. */
 const NAV_ITEM =
   "mb-px flex w-full cursor-pointer items-center rounded-md border-0 bg-transparent p-2.5 " +
   "font-condensed text-[15px] leading-none font-normal text-[#1d4268] " +
-  "transition-[background] duration-0 hover:bg-accent/10 dark:text-[#9ED4FF]";
+  "transition-[background] duration-0 hover:bg-accent/10 " +
+  // Dark values from `::ng-deep app-client-list` in admin.component.scss:
+  // `.client-list-nav-item span` #bde1ff, `:hover` #006bbd1a, `.active-menu`
+  // rgba(0,98,198,0.25) — the accent teal never applies in dark.
+  "dark:text-[#bde1ff] dark:hover:bg-[#006bbd1a]";
 
-const NAV_ITEM_ACTIVE = "bg-accent/20";
+const NAV_ITEM_ACTIVE = "bg-accent/20 dark:bg-[rgba(0,98,198,0.25)]";
 
 const SECTION_LABEL =
   "mb-1.5 px-2.5 font-condensed text-xs text-muted dark:text-[#4e8dc1]";
-
-/* Folder glyph, one per group, tinted as in the Angular template. */
-function FolderIcon({ className }: { className: string }) {
-  return (
-    <svg
-      xmlns="http://www.w3.org/2000/svg"
-      width="24"
-      height="24"
-      viewBox="0 0 24 24"
-      fill="none"
-      stroke="currentColor"
-      strokeWidth={2}
-      strokeLinecap="round"
-      strokeLinejoin="round"
-      className={className}
-      aria-hidden="true"
-    >
-      <path d="M20 20a2 2 0 0 0 2-2V8a2 2 0 0 0-2-2h-7.9a2 2 0 0 1-1.69-.9L9.6 3.9A2 2 0 0 0 7.93 3H4a2 2 0 0 0-2 2v13a2 2 0 0 0 2 2Z" />
-      <path d="M2 10h20" />
-    </svg>
-  );
-}
-
-const GROUPS = [
-  { id: "blocked", label: "Blocked users", tint: "text-emerald-500" },
-  { id: "fraud", label: "Fraud users", tint: "text-amber-500" },
-  { id: "two-days", label: "Two days retention", tint: "text-blue-500" },
-  { id: "one-month", label: "One month retention", tint: "text-red-500" },
-  { id: "new-reg", label: "New registration", tint: "text-fuchsia-500" },
-];
 
 const ACTION_ICONS = {
   import: (
@@ -102,55 +77,39 @@ export function ClientDirectory({ entity, clients, loading }: ClientDirectoryPro
 
   return (
     <div className="content-body group/content relative flex h-full min-h-0 flex-1 overflow-hidden rounded-xl border-[7px] border-transparent bg-white/30 shadow-[0_0_0_1px_rgba(255,255,255,0.5)] md:gap-5 dark:bg-[#0091ff0d] dark:shadow-[0_0_0_1px_rgb(0,145,255,0.15)]">
-      {/* ── Column 1: client nav ─────────────────────────────────────────── */}
-      <aside className="relative z-20 flex h-full w-60 min-h-0 shrink-0 flex-col overflow-hidden rounded-r-xl border-none bg-transparent">
-        <div className="relative flex min-h-0 flex-1 flex-col overflow-hidden px-1 pt-4">
-          <div
-            className={
-              styles.columnScroll +
-              " min-h-0 w-full flex-1 overflow-x-hidden overflow-y-scroll"
-            }
-          >
+      {/* ── Column 1: client nav ───────────────────────────────────────── */}
+      <aside
+        className="relative z-20 flex h-full w-60 min-h-0 shrink-0 flex-col overflow-hidden rounded-r-xl border-none bg-transparent"
+      >
+        <ColumnScroll
+          hostClassName="flex min-h-0 flex-1 flex-col overflow-hidden px-1 pt-4"
+          className="min-h-0 w-full flex-1 overflow-x-hidden overflow-y-scroll"
+          /* The host's pt-4 sits above the viewport, so the rail starts below it. */
+          railClassName="top-4"
+        >
             <ul className="m-0 list-none p-0">
               <li className="mb-6">
                 <div className={SECTION_LABEL}>Client</div>
                 <ul className="m-0 w-full list-none p-0">
-                  {CLIENT_NAV_OPTIONS.map((option) => (
-                    <li key={option.value}>
-                      <Link
-                        href={`/clients/${option.value}`}
-                        className={
-                          NAV_ITEM + (entity === option.value ? " " + NAV_ITEM_ACTIVE : "")
-                        }
-                      >
-                        {/* eslint-disable-next-line @next/next/no-img-element */}
-                        <img
-                          src={option.icon}
-                          alt={option.label}
-                          className={styles.navIcon + " me-3 h-4 w-4 shrink-0 object-contain"}
-                        />
-                        <span className="min-w-0 flex-1 truncate text-left">
-                          {option.label}
-                        </span>
-                      </Link>
-                    </li>
-                  ))}
-                </ul>
-              </li>
-
-              <li className="mb-6">
-                <div className={SECTION_LABEL}>Groups</div>
-                <ul className="m-0 w-full list-none p-0">
-                  {GROUPS.map((group) => (
-                    <li key={group.id}>
-                      <button type="button" className={NAV_ITEM}>
-                        <FolderIcon className={"me-3 h-4 w-4 " + group.tint} />
-                        <span className="min-w-0 flex-1 truncate text-left">
-                          {group.label}
-                        </span>
-                      </button>
-                    </li>
-                  ))}
+                  {CLIENT_NAV_OPTIONS.map((option) => {
+                    const NavIcon = CLIENT_NAV_ICONS[option.value];
+                    return (
+                      <li key={option.value}>
+                        <Link
+                          href={`/clients/${option.value}`}
+                          className={
+                            NAV_ITEM +
+                            (entity === option.value ? " " + NAV_ITEM_ACTIVE : "")
+                          }
+                        >
+                          <NavIcon className="me-3 h-4 w-4 shrink-0" />
+                          <span className="min-w-0 flex-1 truncate text-left">
+                            {option.label}
+                          </span>
+                        </Link>
+                      </li>
+                    );
+                  })}
                 </ul>
               </li>
 
@@ -184,13 +143,12 @@ export function ClientDirectory({ entity, clients, loading }: ClientDirectoryPro
                 </ul>
               </li>
             </ul>
-          </div>
-        </div>
+        </ColumnScroll>
       </aside>
 
       {/* ── Column 2: the list ───────────────────────────────────────────── */}
       <div className="relative z-[1] flex h-full w-64 min-h-0 min-w-0 flex-col self-stretch overflow-hidden xl:w-80 2xl:w-96">
-        <header className="flex h-11 shrink-0 items-center px-3 font-normal text-[hsl(210_57%_26%)] dark:text-[#9ED4FF]">
+        <header className="flex h-11 shrink-0 items-center px-3 font-normal text-[hsl(210_57%_26%)] dark:text-[#bde1ff]">
           <div className="flex-1 truncate text-[15px] font-normal">
             {config.listTitle}
           </div>
@@ -200,7 +158,7 @@ export function ClientDirectory({ entity, clients, loading }: ClientDirectoryPro
             title={sortAsc ? "Sorted A–Z" : "Sort A–Z"}
             aria-label={sortAsc ? "Sorted A–Z" : "Sort A–Z"}
             className={
-              "inline-flex h-9 w-9 items-center justify-center gap-2 rounded-md p-0 text-sm whitespace-nowrap transition-colors hover:bg-accent/20 focus-visible:bg-accent focus-visible:outline-none " +
+              "inline-flex h-9 w-9 items-center justify-center gap-2 rounded-md p-0 text-sm whitespace-nowrap transition-colors hover:bg-accent/20 dark:hover:bg-[rgba(0,98,198,0.25)] focus-visible:bg-accent focus-visible:outline-none " +
               (sortAsc ? "bg-accent/15" : "")
             }
           >
@@ -226,16 +184,11 @@ export function ClientDirectory({ entity, clients, loading }: ClientDirectoryPro
           </button>
         </header>
 
-        <div
-          className={styles.columnBody + " relative min-h-0 flex-1 overflow-hidden"}
+        <ColumnScroll
+          hostClassName="min-h-0 flex-1 overflow-hidden"
+          className="h-full max-w-none min-h-0 w-full overflow-x-hidden overflow-y-scroll"
           dir="ltr"
         >
-          <div
-            className={
-              styles.columnScroll +
-              " h-full max-w-none min-h-0 w-full overflow-x-hidden overflow-y-scroll"
-            }
-          >
             {loading && displayed.length === 0 && (
               <p className="px-3 py-6 text-center text-xs text-muted">Loading data…</p>
             )}
@@ -253,7 +206,12 @@ export function ClientDirectory({ entity, clients, loading }: ClientDirectoryPro
                 onClick={() => setSelectedId(client.id)}
                 className={
                   "mb-px flex w-full cursor-pointer items-center rounded-md border-0 bg-transparent px-3 py-2.5 text-left transition-[background] duration-0 hover:bg-accent/10 " +
-                  (selected?.id === client.id ? "bg-accent/20" : "")
+                  // `.user-list-item` dark: hover #006bbd1a; selected
+                  // hsl(206 100% 37% / .2), which *lightens* to /.1 on hover.
+                  "dark:hover:bg-[#006bbd1a] " +
+                  (selected?.id === client.id
+                    ? "bg-accent/20 dark:bg-[hsl(206_100%_37%_/_0.2)] dark:hover:bg-[hsl(206_100%_37%_/_0.1)]"
+                    : "")
                 }
               >
                 <span
@@ -264,7 +222,7 @@ export function ClientDirectory({ entity, clients, loading }: ClientDirectoryPro
                 </span>
 
                 <span className="flex min-w-0 flex-1 flex-col gap-[3px]">
-                  <span className="mb-1 block font-normal text-[hsl(210_57%_26%)] dark:text-[#9ED4FF]">
+                  <span className="mb-1 block font-normal text-[hsl(210_57%_26%)] dark:text-[#bde1ff]">
                     {client.username || "N/A"}
                   </span>
                   <span className="text-xs text-[#6195b9] dark:text-[#4e8dc1]">
@@ -288,11 +246,10 @@ export function ClientDirectory({ entity, clients, loading }: ClientDirectoryPro
                 </span>
               </button>
             ))}
-          </div>
-        </div>
+        </ColumnScroll>
       </div>
 
-      {/* ── Column 3: the detail card ────────────────────────────────────── */}
+      {/* ── Column 3: the detail card ───────────────────────────────────── */}
       {selected && <ClientDetail client={selected} config={config} />}
     </div>
   );

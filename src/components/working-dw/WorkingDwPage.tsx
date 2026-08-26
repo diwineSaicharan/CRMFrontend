@@ -15,13 +15,23 @@ import { SAMPLE_DW_REQUESTS } from "@/lib/sample-data";
 import { DW_HERO_MASK, DW_TABLE_MASK } from "./icon-masks";
 import styles from "./WorkingDw.module.css";
 
-/** Stage pill classes, matching the component's `stagePill*` bindings. */
+/*
+ * Stage pill colours, from the component's own `stagePill*` bindings — the pill
+ * carries a solid fill rather than the page's card token, so it did not inherit
+ * anything usable in dark. Geometry is left as it was.
+ *
+ * `border-[#9DBFBE] border-[#34a853]` is the reference's own pair, kept in the
+ * same order so the same one wins here as there.
+ */
 const STAGE_PILL =
   "inline-flex min-h-[26px] min-w-[112px] items-center justify-center gap-1 rounded-full " +
-  "border px-3 py-[3px] text-[12.5px] font-medium leading-none whitespace-nowrap";
-const STAGE_INK = "border-[var(--dw-border)] text-[var(--dw-text)]";
-const STAGE_ACTION = "cursor-pointer hover:bg-[var(--dw-accent-tint)]";
-const STAGE_LOCKED = "opacity-70";
+  "border border-solid px-3 py-[3px] text-[12.5px] font-medium leading-none whitespace-nowrap " +
+  "border-[#9DBFBE] border-[#34a853] bg-[#B2CCCB] " +
+  "dark:border-[#0062AD] dark:border-[#34a853] dark:bg-[#0B3A63]";
+const STAGE_INK = "text-[#214055] dark:text-[#BDE1FF]";
+const STAGE_ACTION =
+  "cursor-pointer transition-colors hover:bg-[#A3C1C0] dark:hover:bg-[#0E4A80]";
+const STAGE_LOCKED = "cursor-not-allowed opacity-60";
 
 const TAB_BASE =
   "inline-flex items-center gap-2 rounded-[0.4rem] border border-solid px-4 py-2.5 " +
@@ -185,7 +195,7 @@ export function WorkingDwPage() {
           <div className="flex min-w-0 items-center gap-3">
             <MaskIcon
               mask={DW_HERO_MASK}
-              className="h-[30px] w-[30px] shrink-0 text-headings dark:text-[#BDE1FF]"
+              className="h-[20px] w-[20px] shrink-0 text-headings dark:text-[#BDE1FF]"
             />
             <div className="min-w-0">
               <h1 className="m-0 text-[19px] leading-[1.2] font-semibold text-[var(--dw-headings)]">

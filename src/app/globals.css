@@ -38,8 +38,19 @@
   --shell-content-top-padding: 10px;
   --shell-content-bottom-padding: 10px;
   --shell-content-height: calc(
-    100vh - var(--shell-content-top-padding) - var(--shell-content-bottom-padding)
+    100vh - var(--shell-content-top-padding) 
   );
+}
+
+/* admin.component.scss redeclares two of these on .background-container above
+   1440px. Missing it left every page sitting 3px low with a slightly narrow
+   right inset — the workspace is the shared origin, so it shifts all of
+   Clients, Create and Working D/W at once. */
+@media screen and (min-width: 1440px) {
+  :root {
+    --shell-rail-width: 4.4rem;
+    --shell-content-top-padding: 7px;
+  }
 }
 
 body {
@@ -49,7 +60,7 @@ body {
 }
 
 .dark body {
-  background-color: #041220;
+  background-color: #061321;
   color: #b7d8f6;
 }
 
@@ -66,28 +77,18 @@ body {
   background-image: url("/assets/images/dark-theme-background.png");
 }
 
-/* Sidebar / main scroll — thin rails so the glass background stays readable. */
+/* Sidebar / main scroll. The scrollbar takes no layout width: the reference
+   drives these panes with an overlay rail and keeps the native bar at zero, so
+   a real track would narrow the pane and shift its content. */
 .shell-scroll {
-  scrollbar-width: thin;
-  scrollbar-color: rgba(29, 66, 104, 0.25) transparent;
+  scrollbar-width: none;
+  -ms-overflow-style: none;
 }
 
 .shell-scroll::-webkit-scrollbar {
-  width: 6px;
-  height: 6px;
-}
-
-.shell-scroll::-webkit-scrollbar-thumb {
-  border-radius: 9999px;
-  background-color: rgba(29, 66, 104, 0.25);
-}
-
-.dark .shell-scroll {
-  scrollbar-color: rgba(183, 216, 246, 0.25) transparent;
-}
-
-.dark .shell-scroll::-webkit-scrollbar-thumb {
-  background-color: rgba(183, 216, 246, 0.25);
+  display: none;
+  width: 0;
+  height: 0;
 }
 
 /* Material Icons ligature font, same as diwine_admin_ui/src/index.html.
@@ -105,4 +106,14 @@ body {
   direction: ltr;
   font-feature-settings: "liga";
   -webkit-font-smoothing: antialiased;
+}
+
+/* Icons that are Figma exports wrapping a base64 PNG (assets/action/*.svg and
+   the create-nav glyphs) cannot inherit currentColor, so they are recoloured
+   with a filter — `--admin-dark-icon-filter` from admin.component.scss. The
+   artwork is already tinted #214055, so light mode needs no rule — and no
+   `transition` here either, or it would beat the row-action hover scale. */
+.dark .icon-img {
+  filter: brightness(0) saturate(100%) invert(78%) sepia(48%) saturate(591%)
+    hue-rotate(177deg) brightness(102%) contrast(101%);
 }

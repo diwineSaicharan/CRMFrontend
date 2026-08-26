@@ -251,30 +251,21 @@
 
 /* ── scroll rail ─────────────────────────────────────────────────────────── */
 
+/*
+  `.dw-rail-scroll` has no native scrollbar at all. The reference's own note
+  explains why: styling any scrollbar part switches Chrome to its legacy
+  scrollbar, which "reserves a full gutter of layout width" — the rail is a div
+  so it floats over the content instead of taking 8px from it. A real 8px track
+  here narrowed the table pane and pushed its columns out of line.
+*/
 .tableScroll {
-  scrollbar-width: thin;
-  scrollbar-color: rgba(178, 204, 203, 0.72) transparent;
+  scrollbar-width: none;
+  -ms-overflow-style: none;
   overscroll-behavior: contain;
 }
 
 .tableScroll::-webkit-scrollbar {
-  width: 8px;
-  height: 8px;
-}
-
-.tableScroll::-webkit-scrollbar-track {
-  background: transparent;
-}
-
-.tableScroll::-webkit-scrollbar-thumb {
-  border-radius: 999px;
-  background: rgba(178, 204, 203, 0.72);
-}
-
-:global(.dark) .tableScroll {
-  scrollbar-color: rgba(3, 111, 182, 0.82) transparent;
-}
-
-:global(.dark) .tableScroll::-webkit-scrollbar-thumb {
-  background: rgba(3, 111, 182, 0.82);
+  display: none;
+  width: 0;
+  height: 0;
 }

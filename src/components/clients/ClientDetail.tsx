@@ -10,7 +10,9 @@ import {
   getClientAvatarColor,
   getClientInitials,
 } from "./client-directory.config";
-import { RowActions } from "./RowActions";
+import { ClientHierarchy } from "./ClientHierarchy";
+import { ClientTransactions } from "./ClientTransactions";
+import { ColumnScroll } from "./ColumnScroll";
 import styles from "./ClientDirectory.module.css";
 
 /* Lucide geometry copied from client-directory-panel.component.html. */
@@ -107,7 +109,7 @@ const ICONS = {
 
 const ICON_CIRCLE =
   "flex h-9 w-9 min-h-9 min-w-9 shrink-0 items-center justify-center rounded-full " +
-  "bg-accent/10 font-normal text-headings dark:text-[#9ED4FF]";
+  "bg-accent/10 font-normal text-headings dark:border dark:border-white/8 dark:bg-white/10 dark:text-[#bde1ff]";
 
 function DetailField({
   icon,
@@ -125,7 +127,7 @@ function DetailField({
         <h3 className="m-0 mb-1 text-xs leading-4 text-muted dark:text-[#4e8dc1]">
           {label}
         </h3>
-        <p className="m-0 text-[0.9375rem] leading-4 text-heading dark:text-[#9ED4FF]">
+        <p className="m-0 text-[0.9375rem] leading-4 text-heading dark:text-[#bde1ff]">
           {value}
         </p>
       </div>
@@ -147,21 +149,25 @@ function LockRow({
   return (
     <button
       type="button"
-      className="grid min-h-[58px] cursor-pointer grid-cols-[32px_minmax(0,1fr)] items-center gap-2 rounded-lg border border-[#e5e7eb] bg-card p-2.5 text-left text-headings dark:border-[rgba(0,145,255,0.2)] dark:bg-[rgba(0,145,255,0.06)] dark:text-[#9ED4FF]"
+      className="grid min-h-[58px] cursor-pointer grid-cols-[32px_minmax(0,1fr)] items-center gap-2 rounded-lg border border-[#e5e7eb] bg-card p-2.5 text-left text-headings dark:border-white/10 dark:bg-[rgba(2,51,94,0.3)] dark:text-[#bde1ff] dark:hover:bg-[rgba(2,51,94,0.45)]"
     >
+      {/* The lock glyph swaps to brighter signal colours in dark. */}
       <span
         className={
           "material-icons text-[21px] " +
-          (unlocked ? "text-[#16a34a]" : "text-[#dc3545]")
+          (unlocked
+            ? "text-[#16a34a] dark:text-[#00D26A]"
+            : "text-[#dc3545] dark:text-[#FF4D4F]")
         }
       >
         {unlocked ? "lock_open" : "lock"}
       </span>
       <span className="min-w-0">
-        <strong className="block overflow-hidden text-[13px] font-medium text-ellipsis whitespace-nowrap">
+        <strong className="block overflow-hidden text-[13px] font-medium text-ellipsis whitespace-nowrap dark:text-[#338FC7]">
           {title}
         </strong>
-        <small className="mt-1 inline-flex h-[22px] w-fit items-center rounded-full bg-[rgba(178,204,203,0.2)] px-3 py-1 text-[10px] leading-none font-medium text-headings dark:bg-[rgba(0,145,255,0.14)] dark:text-[#9ED4FF]">
+        {/* `.lock-row .status-badge` loses its pill fill entirely in dark. */}
+        <small className="mt-1 inline-flex h-[22px] w-fit items-center rounded-full bg-[rgba(178,204,203,0.2)] px-3 py-1 text-[10px] leading-none font-medium text-headings dark:bg-transparent dark:text-[#bde1ff]">
           {statusText}
         </small>
       </span>
@@ -172,75 +178,23 @@ function LockRow({
 export interface ClientDetailProps {
   client: Client;
   config: ClientDirectoryEntityConfig;
-  onCreate?: () => void;
-  onDeposit?: () => void;
-  onBulkUpload?: () => void;
 }
 
-export function ClientDetail({
-  client,
-  config,
-  onCreate,
-  onDeposit,
-  onBulkUpload,
-}: ClientDetailProps) {
-  const headerButton =
-    "inline-flex h-10 items-center justify-center gap-2 rounded-md px-4 text-sm font-normal whitespace-nowrap " +
-    "transition-colors hover:bg-accent/20 focus-visible:bg-accent disabled:pointer-events-none disabled:opacity-50";
-
+export function ClientDetail({ client, config }: ClientDetailProps) {
   return (
     <div className="relative z-[1] flex h-full min-h-0 min-w-0 flex-1 flex-col self-stretch overflow-hidden">
-      <header className="flex h-11 shrink-0 items-center px-3 font-normal text-[hsl(210_57%_26%)] dark:text-[#9ED4FF]">
-        <button
-          type="button"
-          className={"ms-auto " + headerButton}
-          onClick={onDeposit}
-        >
-          {/* eslint-disable-next-line @next/next/no-img-element */}
-          <img src="/assets/action/dep.svg" alt="" className="h-3.5 w-3.5" />
-          Deposit
-        </button>
+      {/* The action buttons are gone, but the 44px band stays: it is what keeps
+          this column's card aligned with the list column's header row. */}
+      <header className="h-11 shrink-0" />
 
-        {config.showBulkUpload && (
-          <button type="button" className={headerButton} onClick={onBulkUpload}>
-            <svg
-              xmlns="http://www.w3.org/2000/svg"
-              width="14"
-              height="14"
-              viewBox="0 0 24 24"
-              fill="none"
-              stroke="currentColor"
-              strokeWidth={1.5}
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              aria-hidden="true"
-            >
-              <path d="M6 22a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h8a2.4 2.4 0 0 1 1.704.706l3.588 3.588A2.4 2.4 0 0 1 20 8v12a2 2 0 0 1-2 2z" />
-              <path d="M14 2v5a1 1 0 0 0 1 1h5" />
-              <path d="M12 12v6" />
-              <path d="m15 15-3-3-3 3" />
-            </svg>
-            Bulk Upload
-          </button>
-        )}
-
-        <button type="button" className={headerButton} onClick={onCreate}>
-          {/* eslint-disable-next-line @next/next/no-img-element */}
-          <img src="/assets/action/add-user.svg" alt="" className="h-3.5 w-3.5" />
-          {config.createLabel}
-        </button>
-      </header>
-
-      <div className={styles.columnBody + " relative min-h-0 flex-1 overflow-hidden"}>
-        <div
-          className={
-            styles.columnScroll +
-            " h-full min-h-0 w-full overflow-x-hidden overflow-y-scroll"
-          }
-        >
+      <ColumnScroll
+        hostClassName="min-h-0 flex-1 overflow-hidden"
+        className="h-full min-h-0 w-full overflow-x-hidden overflow-y-scroll"
+      >
           <div className="mx-auto mt-5 block w-full max-w-xl rounded-lg bg-card p-2 dark:bg-[#0091ff1a]">
-            {/* Hero: fixed 229px so the card never reflows as fields load. */}
-            <div className="flex h-[229px] max-h-[229px] min-h-[229px] flex-col items-center justify-evenly gap-1.5 overflow-visible bg-accent/10 p-5 pb-2">
+            {/* Hero. The row-action strip that used to sit under the name is
+                gone, so the fixed 229px that was sized around it goes too. */}
+            <div className="flex flex-col items-center justify-evenly gap-3 overflow-visible bg-[#67a5ad1a] p-5 dark:bg-[#006bbd1a]">
               <span
                 className="flex aspect-square w-32 shrink-0 items-center justify-center overflow-hidden rounded-full text-[48px] leading-none font-bold text-white shadow-[0_1px_3px_rgba(15,23,42,0.08)]"
                 style={{ backgroundColor: getClientAvatarColor(client.username) }}
@@ -248,13 +202,9 @@ export function ClientDetail({
                 {getClientInitials(client.username)}
               </span>
 
-              <h3 className="m-0 max-w-full overflow-hidden px-2 text-center font-condensed text-ellipsis whitespace-nowrap text-headings dark:text-[#9ED4FF]">
+              <h3 className="m-0 max-w-full overflow-hidden px-2 text-center font-condensed text-ellipsis whitespace-nowrap text-headings dark:text-[#bde1ff]">
                 {client.username || "N/A"}
               </h3>
-
-              <div className="flex w-full max-w-full shrink-0 justify-center">
-                <RowActions />
-              </div>
             </div>
 
             <div className="p-3">
@@ -262,7 +212,7 @@ export function ClientDetail({
                 <DetailField
                   icon={
                     // eslint-disable-next-line @next/next/no-img-element
-                    <img src="/assets/action/dep.svg" alt="" className="h-[18px] w-5 object-contain" />
+                    <img src="/assets/action/dep.svg" alt="" className="icon-img h-[18px] w-5 object-contain" />
                   }
                   label="Balance"
                   value={formatIndianCurrency(client.balance)}
@@ -271,11 +221,6 @@ export function ClientDetail({
                   icon={<span className="material-icons text-[20px]">trending_up</span>}
                   label="Exposure"
                   value={formatIndianCurrency(client.exposure)}
-                />
-                <DetailField
-                  icon={ICONS.percent}
-                  label="Sharing Tree"
-                  value={client.sharingTree ?? `${client.sharingRatio ?? 0}`}
                 />
                 <DetailField
                   icon={ICONS.listSort}
@@ -366,10 +311,19 @@ export function ClientDetail({
                   statusText={client.isCasinoLocked ? "Locked" : "Unlocked"}
                 />
               </div>
+
+              {/* Upline and money movement, after the Life Time Pnl field and
+                  its lock cards — the order client-directory-panel.component
+                  uses. Both render their own empty state. */}
+              <ClientHierarchy parents={client.parents ?? []} />
+
+              <ClientTransactions
+                transactions={client.transactions ?? []}
+                username={client.username}
+              />
             </div>
           </div>
-        </div>
-      </div>
+      </ColumnScroll>
     </div>
   );
 }

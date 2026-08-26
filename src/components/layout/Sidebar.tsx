@@ -35,12 +35,12 @@ const NAV_ICON =
 const NAV_LABEL =
   "button-text col-start-2 row-start-1 flex items-center self-center flex-1 min-w-0 relative z-[1] " +
   "text-[15px] font-normal leading-5 whitespace-nowrap overflow-hidden text-ellipsis max-w-[160px] " +
-  "transition-colors duration-[180ms] text-[#1d4268] dark:text-[#b7d8f6] " +
+  "transition-colors duration-[180ms] text-[#1d4268] dark:text-[#bde1ff] " +
   "group-data-[active=true]:text-[#05a2a1] dark:group-data-[active=true]:text-[#0398ff]";
 
 const CHEVRON =
   "material-icons chevron-icon col-start-3 row-start-1 inline-flex items-center justify-center self-center " +
-  "relative z-[1] text-[18px] max-w-[18px] overflow-hidden text-[#60798b] dark:text-[#b7d8f6] " +
+  "relative z-[1] text-[18px] max-w-[18px] overflow-hidden text-[#60798b] dark:text-[#bde1ff] " +
   "transition-transform duration-200 data-[rotated=true]:rotate-90 " +
   "data-[rotated=true]:text-[#05a2a1] dark:data-[rotated=true]:text-[#0398ff]";
 
@@ -53,7 +53,7 @@ const SUBMENU =
 const SUBMENU_OPTION =
   "group/opt create-option flex items-center min-h-[28px] py-1 px-2 rounded-full cursor-pointer " +
   "transition-all duration-[180ms] text-[0.875rem] font-normal leading-5 whitespace-nowrap overflow-hidden " +
-  "text-[#1d4268] dark:text-[#b7d8f6] hover:bg-white/40 dark:hover:bg-[#0091ff1c] " +
+  "text-[#1d4268] dark:text-[#bde1ff] hover:bg-white/40 dark:hover:bg-[#0091ff1c] " +
   "data-[active=true]:bg-white/40 dark:data-[active=true]:bg-[#0091ff1c] " +
   "data-[active=true]:text-[#05a2a1] dark:data-[active=true]:text-[#0398ff] data-[active=true]:font-medium";
 
@@ -124,18 +124,33 @@ export function Sidebar({
   const isHrefActive = (href: string) =>
     pathname === href || pathname.startsWith(href + "/");
 
+  /*
+   * Box metrics come from sidebar.component.scss, not admin.component.scss.
+   * The latter's `.sidebar { padding: 16px 2px 16px 16px }` is nested plainly
+   * inside `.background-container`, so Angular's emulated encapsulation scopes
+   * it to AdminComponent's own template and it never reaches SidebarComponent's
+   * markup. The rule that actually renders is `padding: 2px 10px` with
+   * `width: 14rem`. Copying the 16px/2px version pushed the whole rail down and
+   * threw the icons off-centre: the symmetric 10px is what lands each glyph's
+   * margin box on the 32px midpoint of the 4rem rail.
+   */
   return (
     <aside
       className={
-        // `overflow-hidden` + a 1rem radius on the right corners only, as
-        // `.sidebar:not(.minimized)` has it.
-        "fixed top-0 left-0 z-[200] flex h-screen flex-col overflow-hidden rounded-r-2xl py-4 pr-0.5 pl-4 " +
-        "transition-[width,background,box-shadow] duration-200 ease-[cubic-bezier(0.4,0,0.2,1)] " +
+        // The transition itself lives in the module: the reference runs width /
+        // padding / background on a 520ms curve and the surface properties on a
+        // separate 360ms one, which a single utility cannot express.
+        styles.sidebar +
+        " fixed top-0 left-0 z-[200] flex h-screen flex-col overflow-hidden px-[10px] py-0.5 " +
         (isMinimized
           ? "w-[var(--shell-sidebar-minimized-width)]"
-          : "w-[var(--shell-sidebar-width)]") +
+          : // 14rem, per `.sidebar`; the workspace still offsets by the wider
+            // --shell-sidebar-width, exactly as .main-content does.
+            "w-56 rounded-r-2xl") +
         // Expanded over the page, it needs its own surface to stay readable.
-        (isRail && !isMinimized ? " " + styles.railExpanded : "")
+        (isRail && !isMinimized
+          ? " " + styles.railExpanded + " backdrop-blur-[16px]"
+          : "")
       }
       onMouseEnter={onMouseEnter}
       onMouseLeave={onMouseLeave}

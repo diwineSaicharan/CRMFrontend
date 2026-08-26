@@ -2,21 +2,27 @@
 
 import { useTheme } from "@/lib/theme";
 import { useQuickCreate } from "@/components/quick-create/QuickCreateProvider";
+import {
+  CreateDepositIcon,
+  CreateUserIcon,
+  CreateWithdrawalIcon,
+} from "@/components/ui/icons";
 
-/* Button chrome copied from team-summary-display.component.html. */
+/* Button chrome from team-summary-display.component.html, with the dark hover
+   fill set to #0b3f6d — focus-visible matches it, or tabbing to a button would
+   flash the old accent teal that hovering no longer uses. */
 const RAIL_BUTTON =
   "inline-flex gap-2 items-center justify-center whitespace-nowrap rounded-md text-sm " +
   "focus-visible:outline-none disabled:pointer-events-none disabled:opacity-50 text-headings " +
   "transition-[background,box-shadow] duration-300 hover:bg-white focus-visible:bg-white " +
-  "hover:ring-3 hover:ring-white/30 dark:hover:ring-accent/15 dark:hover:bg-accent/50 " +
-  "dark:focus-visible:bg-accent h-9 w-9 p-0";
+  "hover:ring-3 hover:ring-white/30 dark:hover:ring-accent/15 dark:hover:bg-[#0b3f6d] " +
+  "dark:focus-visible:bg-[#0b3f6d] h-9 w-9 p-0";
 
-/* <img> cannot inherit currentColor, so the create glyphs are recoloured with
-   the same filters team-summary-display.component.scss uses. */
-const CREATE_ICON =
-  "toolbar-create-icon h-5 w-5 " +
-  "[filter:brightness(0)_saturate(100%)_invert(20%)_sepia(23%)_saturate(1470%)_hue-rotate(169deg)_brightness(94%)_contrast(88%)] " +
-  "dark:[filter:brightness(0)_saturate(100%)_invert(84%)_sepia(20%)_saturate(900%)_hue-rotate(180deg)_brightness(105%)_contrast(101%)]";
+/* The icons are inline SVG drawn with `currentColor`, so their colour is set
+   here on the element, not inside the icon component — one constant per role,
+   applied via `className`. #50708d / #bde1ff is `.toolbar-svg` from
+   team-summary-display.component.scss, the rail's stroked-icon ink. */
+const CREATE_ICON = "h-5 w-5 shrink-0 text-[#50708d] dark:text-[#bde1ff]";
 
 const TOOLBAR_SVG = "toolbar-svg h-[22px] w-[22px] shrink-0 text-[#50708d] dark:text-[#bde1ff]";
 
@@ -37,8 +43,7 @@ export function RightRail() {
         title="Create User"
         aria-label="Create User"
       >
-        {/* eslint-disable-next-line @next/next/no-img-element */}
-        <img src="/assets/icons/create-user.svg" alt="" aria-hidden="true" className={CREATE_ICON} />
+        <CreateUserIcon className={CREATE_ICON} />
       </button>
 
       <button
@@ -48,10 +53,8 @@ export function RightRail() {
         title="Create Deposit"
         aria-label="Create Deposit"
       >
-        {/* eslint-disable-next-line @next/next/no-img-element */}
-        <img src="/assets/icons/create-deposit.svg" alt="" aria-hidden="true" className={CREATE_ICON} />
+        <CreateDepositIcon className={CREATE_ICON} />
       </button>
-
       <button
         type="button"
         className={RAIL_BUTTON}
@@ -59,13 +62,7 @@ export function RightRail() {
         title="Create Withdrawal"
         aria-label="Create Withdrawal"
       >
-        {/* eslint-disable-next-line @next/next/no-img-element */}
-        <img
-          src="/assets/icons/create-withdrawal.svg"
-          alt=""
-          aria-hidden="true"
-          className={CREATE_ICON}
-        />
+        <CreateWithdrawalIcon className={CREATE_ICON} />
       </button>
 
       <button

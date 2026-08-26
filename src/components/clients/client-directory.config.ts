@@ -68,18 +68,19 @@ export const CLIENT_DIRECTORY_CONFIGS: Record<
   },
 };
 
-/** Left column, from admin.component.ts `refreshClientNavOptions`. */
+/**
+ * Left column, from admin.component.ts `refreshClientNavOptions`. The glyphs
+ * are inlined in components/ui/icons.tsx (CLIENT_NAV_ICONS) rather than named
+ * here, so they take `currentColor` instead of needing a recolour filter.
+ *
+ * The CRM directory only surfaces end users. The other rungs keep their entry
+ * in CLIENT_DIRECTORY_CONFIGS so the route can still resolve a config, but
+ * they are not navigable and `/clients/<other>` redirects to `/clients/users`.
+ */
 export const CLIENT_NAV_OPTIONS: Array<{
   value: ClientEntityKey;
   label: string;
-  icon: string;
-}> = [
-  { value: "users", label: "Users", icon: "/assets/icons/newMaster.svg" },
-  { value: "dl", label: "DL", icon: "/assets/icons/dl.svg" },
-  { value: "super", label: "Super", icon: "/assets/icons/super.svg" },
-  { value: "master", label: "Master", icon: "/assets/icons/master.svg" },
-  { value: "teammates", label: "TeamMate", icon: "/assets/icons/teammate.svg" },
-];
+}> = [{ value: "users", label: "Users" }];
 
 /** Palette and hash copied from avatar-image.util.ts, so a given username gets
     the same colour here as it does in the admin panel. */
