@@ -2,6 +2,14 @@
 
 import { useEffect, useMemo, useRef, useState } from "react";
 
+import {
+  BTN_GHOST,
+  BTN_PRIMARY,
+  FIELD_CONTROL,
+  FIELD_LABEL,
+  platformCheckClass,
+  platformChipClass,
+} from "@/components/ui/form-chrome";
 import styles from "./QuickCreateModal.module.css";
 
 import {
@@ -13,20 +21,12 @@ import {
   type QuickCreateKind,
   type UserPlatform,
 } from "@/lib/deposit-withdrawal";
+import { normalizeUsernameForStorage, validateUsername } from "@/lib/username";
+import { getLeadSources } from "@/lib/lead-sources";
 import { useQuickCreate } from "./QuickCreateProvider";
+import { SearchableSelect } from "./SearchableSelect";
 
 /* ── shared class strings (ported from quick-create.component.scss) ───────── */
-
-const FIELD_LABEL =
-  "mb-[7px] block font-condensed text-[15px] leading-none font-normal text-black dark:text-[#9ed4ff]";
-
-const FIELD_CONTROL =
-  "h-10 w-full max-w-[729px] rounded-[5px] border-[0.5px] border-[rgba(163,190,209,0.5)] " +
-  "bg-white/50 px-[14px] font-condensed text-[15px] leading-none text-[#1d4268] backdrop-blur-[6px] " +
-  "transition-[border-color,box-shadow] duration-200 placeholder:text-[#1d4268] placeholder:opacity-100 " +
-  "focus:border-[#2f80d6] focus:shadow-[0_0_0_1px_rgba(47,128,214,0.35)] focus:outline-none " +
-  "dark:border-[rgba(0,145,255,0.2)] dark:bg-[rgba(0,145,255,0.08)] dark:text-[#9ed4ff] " +
-  "dark:placeholder:text-[#9ed4ff]";
 
 /* Native selects do not inherit the popup surface, so options are coloured too
    — otherwise dark mode renders near-white text on the browser's white sheet. */
@@ -41,23 +41,15 @@ const TEXTAREA_CONTROL =
     "px-[14px] py-[11px]",
   ) + " resize-y";
 
-const BTN =
-  "inline-flex h-10 items-center justify-center gap-[7px] rounded-[5px] border border-[#9cc9e0] " +
-  "px-4 font-condensed text-[15px] leading-5 font-medium tracking-[0.015em] text-[#0e5484] " +
-  "transition-[background,box-shadow] duration-200 disabled:cursor-not-allowed disabled:opacity-65 " +
-  "dark:text-[#9ed4ff]";
-
-const BTN_GHOST =
-  BTN +
-  " w-[70px] bg-white/60 hover:not-disabled:bg-white " +
-  "dark:border-[rgba(0,145,255,0.22)] dark:bg-[rgba(0,145,255,0.08)]";
-
-const BTN_PRIMARY =
-  BTN +
-  " min-w-[145px] bg-[rgba(185,207,209,0.5)] backdrop-blur-[6px] " +
-  "dark:border-[rgba(0,145,255,0.35)] dark:bg-[rgba(0,145,255,0.22)]";
-
 const PLAYER_CATEGORIES = ["D1", "D2", "D3", "D4"];
+
+/** Local date, not `toISOString()` — that shifts a day west of UTC. */
+function todayIso(): string {
+  const now = new Date();
+  return new Date(now.getTime() - now.getTimezoneOffset() * 60000)
+    .toISOString()
+    .slice(0, 10);
+}
 
 function Field({
   label,
@@ -122,11 +114,29 @@ function QuickCreateForm({
   const [showSearchResults, setShowSearchResults] = useState(false);
   const [selectedUser, setSelectedUser] = useState<DwUser | null>(null);
 
-  // Create user
+  // Create user. Same field set as the /create/user page form.
+  // Kept as a pair so restoring the commented-out Username field below is a
+  // single uncomment rather than a state change as well.
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   const [newUsername, setNewUsername] = useState("");
   const [newFullName, setNewFullName] = useState("");
   const [newMobile, setNewMobile] = useState("");
   const [newCategory, setNewCategory] = useState("");
+  const [newAltMobile, setNewAltMobile] = useState("");
+  const [newDoj, setNewDoj] = useState(todayIso);
+  const [newLocation, setNewLocation] = useState("");
+  const [newLeadSource, setNewLeadSource] = useState("");
+  const [newPlatformIds, setNewPlatformIds] = useState<string[]>([]);
+
+  // Deposit details, collected with the user and raised as a request straight
+  // after they are created.
+  const [newBankId, setNewBankId] = useState("");
+  const [newDepositAmount, setNewDepositAmount] = useState("");
+  const [newBonus, setNewBonus] = useState("");
+  const [newUtr, setNewUtr] = useState("");
+  const [newReceipt, setNewReceipt] = useState<string | null>(null);
+  const [newReceiptName, setNewReceiptName] = useState("");
+  const [leadSources, setLeadSources] = useState<string[]>([]);
 
   // Deposit
   const [paymentMode, setPaymentMode] = useState("UPI");
@@ -161,7 +171,7 @@ function QuickCreateForm({
       .then((res) => setPlatforms(res.data ?? []))
       .catch(() => setPlatforms([]));
 
-    if (kind === "deposit") {
+    if (kind === "deposit" || kind === "user") {
       dwApi
         .getBanks()
         .then((res) => setBanks(res.data ?? []))
@@ -250,6 +260,24 @@ function QuickCreateForm({
     reader.readAsDataURL(file);
   };
 
+  const onNewReceiptSelected = (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    if (!file) return;
+    setNewReceiptName(file.name);
+    const reader = new FileReader();
+    reader.onload = () => setNewReceipt(String(reader.result ?? ""));
+    reader.readAsDataURL(file);
+  };
+
+  /** Read-only: what the player actually ends up with. */
+  const newTotalDeposit =
+    (Number(newDepositAmount) || 0) + (Number(newBonus) || 0);
+
+  const bankOptions = useMemo(
+    () => banks.map((bank) => ({ value: bank.id, label: bank.bankName })),
+    [banks],
+  );
+
   const submitAddBank = async () => {
     if (!selectedUser) {
       setAddBankError("Pick a user first");
@@ -287,14 +315,79 @@ function QuickCreateForm({
     setTimeout(handleClose, 1200);
   };
 
+  useEffect(() => {
+    if (kind !== "user") return;
+    let cancelled = false;
+
+    getLeadSources()
+      .then((rows) => {
+        if (!cancelled) setLeadSources(rows);
+      })
+      .catch(() => undefined);
+
+    return () => {
+      cancelled = true;
+    };
+  }, [kind]);
+
+  const toggleNewPlatform = (id: string) =>
+    setNewPlatformIds((current) =>
+      current.includes(id)
+        ? current.filter((entry) => entry !== id)
+        : [...current, id],
+    );
+
   const submit = async () => {
     if (!kind) return;
     setError("");
 
     if (kind === "user") {
-      const username = newUsername.trim();
-      if (!username) {
-        setError("Username is required");
+      // The Username field is commented out above, so Name is what lands in
+      // user_master.username — the column diwine_admin's own Create User modal
+      // writes its Username field to. Normalised the same way that form stores
+      // it (lowercased, spaces stripped) rather than suffixed, so what is typed
+      // into Name is what ends up in the table. A typed username still wins if
+      // that field is ever restored.
+      const username =
+        newUsername.trim() || normalizeUsernameForStorage(newFullName.trim());
+
+      // Every other field on this form is required, same rule as the page form.
+      const missing = [
+        [newFullName.trim(), "Name"],
+        [newMobile.trim(), "Mobile Number"],
+        [newCategory, "Category"],
+        [newDoj, "DOJ"],
+        [newLocation.trim(), "Location"],
+        [newLeadSource, "Lead Source"],
+        [newBankId, "Our Bank Name"],
+        [newReceipt, "Upload Image"],
+        [newDepositAmount.trim(), "Deposit Amount"],
+        [newBonus.trim(), "Bonus"],
+        [newUtr.trim(), "UTR"],
+      ].find(([value]) => !value);
+
+      if (missing) {
+        setError(`${missing[1]} is required`);
+        return;
+      }
+      if (newPlatformIds.length === 0) {
+        setError("Select at least one platform");
+        return;
+      }
+      // Same rule the page form applies: at least 4 characters, no spaces.
+      // Surfaced against Name, since that is the field actually on screen.
+      const usernameError = validateUsername(username);
+      if (usernameError) {
+        setError(`Name: ${usernameError}`);
+        return;
+      }
+      if (!/^[0-9]{10,15}$/.test(newMobile.trim())) {
+        setError("Mobile number must be 10-15 digits");
+        return;
+      }
+      // Optional, so only checked when something was actually entered.
+      if (newAltMobile.trim() && !/^[0-9]{10,15}$/.test(newAltMobile.trim())) {
+        setError("Alternate mobile number must be 10-15 digits");
         return;
       }
       setSubmitting(true);
@@ -302,13 +395,50 @@ function QuickCreateForm({
         const res = await dwApi.createDummyUser({
           username,
           // Password intentionally omitted — the backend generates one.
-          fullName: newFullName.trim() || undefined,
-          mobileNumber: newMobile.trim() || undefined,
-          category: newCategory || undefined,
-          platformId: platformId || undefined,
+          fullName: newFullName.trim(),
+          mobileNumber: newMobile.trim(),
+          category: newCategory,
+          platformId: newPlatformIds[0],
+          platformIds: newPlatformIds,
+          alternateMobileNumber: newAltMobile.trim(),
+          dateOfJoining: newDoj,
+          location: newLocation.trim(),
+          leadSource: newLeadSource,
         });
-        if (res.success) finish(res.message ?? `User "${username}" created`);
-        else setError(res.message ?? "Failed to create user");
+        if (!res.success) {
+          setError(res.message ?? "Failed to create user");
+          return;
+        }
+
+        const newUserId = res.data?.id;
+        if (!newUserId) {
+          finish(`User "${username}" created`);
+          return;
+        }
+
+        const deposit = await dwApi.createRequest({
+          userId: newUserId,
+          type: "DEPOSIT",
+          amount: Number(newDepositAmount) || 0,
+          bonusAmount: Number(newBonus) || 0,
+          platformId: newPlatformIds[0],
+          sourceType: "MANUAL",
+          paymentMode: "UPI",
+          bankId: newBankId,
+          utr: newUtr.trim(),
+          receiptImage: newReceipt ?? undefined,
+        });
+
+        if (deposit.success) {
+          finish(`User "${username}" created with deposit`);
+        } else {
+          // The user is already saved at this point, so this is not a failure
+          // of the whole form.
+          setError(
+            `User "${username}" created, but the deposit failed: ` +
+              (deposit.message ?? "unknown error"),
+          );
+        }
       } catch (err) {
         setError(err instanceof Error ? err.message : "Failed to create user");
       } finally {
@@ -358,6 +488,16 @@ function QuickCreateForm({
     }
   };
 
+  const leadSourceOptions = useMemo(
+    () => leadSources.map((source) => ({ value: source, label: source })),
+    [leadSources],
+  );
+
+  const categoryOptions = useMemo(
+    () => PLAYER_CATEGORIES.map((category) => ({ value: category, label: category })),
+    [],
+  );
+
   const platformOptions = useMemo(
     () =>
       platforms.map((platform) => (
@@ -400,7 +540,13 @@ function QuickCreateForm({
         aria-modal="true"
         aria-label={copy.title}
         onClick={(event) => event.stopPropagation()}
-        className="h-[775px] max-h-[calc(100vh-32px)] w-[799px] max-w-[calc(100vw-32px)] rounded-[10px] border border-white/45 bg-white/28 px-[7.5px] py-[9px] text-[#1d4268] shadow-[0_20px_60px_rgba(20,60,95,0.12)] backdrop-blur-[26px] backdrop-saturate-125 min-[1200px]:relative min-[1200px]:left-[66px] dark:border-[rgba(0,145,255,0.22)] dark:bg-[rgba(0,43,82,0.3)] dark:text-[#d8eeff]"
+        className={
+          "h-[775px] max-h-[calc(100vh-32px)] max-w-[calc(100vw-32px)] rounded-[10px] border border-white/45 bg-white/28 px-[7.5px] py-[9px] text-[#1d4268] shadow-[0_20px_60px_rgba(20,60,95,0.12)] backdrop-blur-[26px] backdrop-saturate-125 min-[1200px]:relative min-[1200px]:left-[66px] dark:border-[rgba(0,145,255,0.22)] dark:bg-[rgba(0,43,82,0.3)] dark:text-[#d8eeff] " +
+          // Only Create User is wide: it is the two-column form with the
+          // deposit-details block. Deposit and Withdrawal keep the original
+          // 799px, being single-column.
+          (kind === "user" ? "w-[980px]" : "w-[799px]")
+        }
       >
         <div className="flex h-full w-full flex-col overflow-hidden rounded-lg bg-white/58 dark:bg-[rgba(0,43,82,0.62)]">
           <div className="flex items-center justify-between gap-4 px-[27.5px] pt-[26px] pb-[18px]">
@@ -484,8 +630,56 @@ function QuickCreateForm({
               </Field>
             )}
 
+            {/* Two columns, as the reference form lays it out — nine fields in
+                one column overflowed the sheet and put it behind a scrollbar. */}
             {kind === "user" && (
-              <>
+              <div className="grid grid-cols-1 gap-x-5 sm:grid-cols-2">
+                {/* Platform is a multi-select here: one user can be created
+                    against several platforms in a single submit. */}
+                <Field label="Platform" required>
+                  <div className="flex flex-wrap gap-2">
+                    {platforms.length === 0 && (
+                      <span className="font-condensed text-[13px] text-[#1d4268] dark:text-[rgba(158,212,255,0.75)]">
+                        No platforms available
+                      </span>
+                    )}
+                    {platforms.map((platform) => {
+                      const selected = newPlatformIds.includes(platform.id);
+                      return (
+                        <button
+                          key={platform.id}
+                          type="button"
+                          onClick={() => toggleNewPlatform(platform.id)}
+                          aria-pressed={selected}
+                          className={platformChipClass(selected)}
+                        >
+                          <span
+                            aria-hidden="true"
+                            className={platformCheckClass(selected)}
+                          >
+                            {selected ? "✓" : ""}
+                          </span>
+                          {platform.name}
+                        </button>
+                      );
+                    })}
+                  </div>
+                </Field>
+
+                <Field label="Name" required>
+                  <input
+                    type="text"
+                    className={FIELD_CONTROL}
+                    value={newFullName}
+                    onChange={(event) => setNewFullName(event.target.value)}
+                    placeholder="Enter name"
+                    autoComplete="off"
+                  />
+                </Field>
+
+                {/* Username is derived from Name on submit — see `submit`.
+                    Uncomment to collect it explicitly again; a value typed here
+                    takes priority over the generated one.
                 <Field label="Username" required>
                   <input
                     type="text"
@@ -496,62 +690,180 @@ function QuickCreateForm({
                     autoComplete="off"
                   />
                 </Field>
-                <Field label="Full Name">
-                  <input
-                    type="text"
-                    className={FIELD_CONTROL}
-                    value={newFullName}
-                    onChange={(event) => setNewFullName(event.target.value)}
-                    placeholder="Optional"
-                    autoComplete="off"
-                  />
-                </Field>
-                <Field label="Mobile Number">
+                */}
+
+                <Field label="Mobile Number" required>
                   <input
                     type="tel"
                     className={FIELD_CONTROL}
                     value={newMobile}
                     onChange={(event) => setNewMobile(event.target.value)}
+                    placeholder="Enter mobile number"
+                    autoComplete="off"
+                  />
+                </Field>
+
+                <Field label="Alternate Mobile No">
+                  <input
+                    type="tel"
+                    className={FIELD_CONTROL}
+                    value={newAltMobile}
+                    onChange={(event) => setNewAltMobile(event.target.value)}
                     placeholder="Optional"
                     autoComplete="off"
                   />
                 </Field>
-                <Field label="Category">
-                  <select
+
+                <Field label="DOJ" required>
+                  <input
+                    type="date"
+                    className={FIELD_CONTROL + " [color-scheme:light] dark:[color-scheme:dark]"}
+                    value={newDoj}
+                    onChange={(event) => setNewDoj(event.target.value)}
+                  />
+                </Field>
+
+                <Field label="Location" required>
+                  <input
+                    type="text"
+                    className={FIELD_CONTROL}
+                    value={newLocation}
+                    onChange={(event) => setNewLocation(event.target.value)}
+                    placeholder="Enter location"
+                    autoComplete="off"
+                  />
+                </Field>
+
+                <Field label="Lead Source" required>
+                  <SearchableSelect
+                    className={SELECT_CONTROL}
+                    value={newLeadSource}
+                    onChange={setNewLeadSource}
+                    loading={leadSources.length === 0}
+                    options={leadSourceOptions}
+                  />
+                </Field>
+
+                <Field label="Category" required>
+                  <SearchableSelect
                     className={SELECT_CONTROL}
                     value={newCategory}
-                    onChange={(event) => setNewCategory(event.target.value)}
-                  >
-                    <option value="">Select Category</option>
-                    {PLAYER_CATEGORIES.map((category) => (
-                      <option key={category} value={category}>
-                        {category}
-                      </option>
-                    ))}
-                  </select>
+                    onChange={setNewCategory}
+                    placeholder="Select Category"
+                    options={categoryOptions}
+                  />
                 </Field>
-              </>
+
+                {/* ── deposit details ──────────────────────────────────────
+                    Spans both columns: its own heading, then the same two-up
+                    grid as the fields above. Collected with the user and raised
+                    as a DEPOSIT request the moment the account exists. */}
+                <div className="col-span-full mt-2 mb-4 border-t border-[rgba(163,190,209,0.5)] pt-4 dark:border-[rgba(0,145,255,0.2)]">
+                  <h3 className="m-0 mb-4 flex items-center gap-2 font-condensed text-[15px] leading-none font-semibold tracking-wide text-[#214055] uppercase dark:text-[#d8eeff]">
+                    <span className="material-icons text-[18px]">person</span>
+                    Deposit Details
+                  </h3>
+
+                  <div className="grid grid-cols-1 gap-x-5 sm:grid-cols-2">
+                    <Field label="Our Bank Name" required>
+                      <SearchableSelect
+                        className={SELECT_CONTROL}
+                        value={newBankId}
+                        onChange={setNewBankId}
+                        loading={banks.length === 0}
+                        options={bankOptions}
+                      />
+                    </Field>
+
+                    <Field label="Upload Image" required>
+                      <label className={FIELD_CONTROL + " flex cursor-pointer items-center gap-3"}>
+                        <span className="rounded-[4px] border border-[rgba(163,190,209,0.6)] bg-white/70 px-2 py-1 text-[13px] leading-none text-[#1d4268] dark:border-[rgba(0,145,255,0.25)] dark:bg-[rgba(0,145,255,0.12)] dark:text-[#9ed4ff]">
+                          Choose file
+                        </span>
+                        <span className="min-w-0 flex-1 truncate text-[13px] opacity-80">
+                          {newReceiptName || "No file chosen"}
+                        </span>
+                        <input
+                          type="file"
+                          accept="image/*"
+                          className="hidden"
+                          onChange={onNewReceiptSelected}
+                        />
+                      </label>
+                    </Field>
+
+                    <Field label="Deposit Amount" required>
+                      <input
+                        type="number"
+                        inputMode="decimal"
+                        min="0"
+                        className={FIELD_CONTROL}
+                        value={newDepositAmount}
+                        onChange={(event) => setNewDepositAmount(event.target.value)}
+                        placeholder="Enter deposit amount"
+                      />
+                    </Field>
+
+                    <Field label="Bonus" required>
+                      <input
+                        type="number"
+                        inputMode="decimal"
+                        min="0"
+                        className={FIELD_CONTROL}
+                        value={newBonus}
+                        onChange={(event) => setNewBonus(event.target.value)}
+                        placeholder="Enter bonus"
+                      />
+                    </Field>
+
+                    <Field label="UTR" required>
+                      <input
+                        type="text"
+                        className={FIELD_CONTROL}
+                        value={newUtr}
+                        onChange={(event) => setNewUtr(event.target.value)}
+                        placeholder="Enter UTR"
+                        autoComplete="off"
+                      />
+                    </Field>
+
+                    <Field label="Total Deposit Amount">
+                      {/* Derived, never typed — deposit + bonus. */}
+                      <input
+                        type="text"
+                        readOnly
+                        tabIndex={-1}
+                        className={FIELD_CONTROL + " cursor-default opacity-70"}
+                        value={newTotalDeposit ? newTotalDeposit.toString() : ""}
+                      />
+                    </Field>
+                  </div>
+                </div>
+              </div>
             )}
 
-            <Field label="Platform">
-              <select
-                className={SELECT_CONTROL}
-                value={platformId}
-                onChange={(event) => setPlatformId(event.target.value)}
-              >
-                <option value="">Select Platform</option>
-                {platformOptions}
-              </select>
-            </Field>
+            {/* Deposit / withdrawal keep the single-platform picker. */}
+            {kind !== "user" && (
+              <Field label="Platform">
+                <select
+                  className={SELECT_CONTROL}
+                  value={platformId}
+                  onChange={(event) => setPlatformId(event.target.value)}
+                >
+                  <option value="">Select Platform</option>
+                  {platformOptions}
+                </select>
+              </Field>
+            )}
 
-            {kind === "user" && (
+            {/* {kind === "user" && (
               <p className="mb-4 font-condensed text-[12.5px] leading-[1.5] text-[#1d4268] dark:text-[rgba(158,212,255,0.75)]">
                 This user has no DL, Super or Master above them &mdash; they are the root
                 of their own tree, so deposits and withdrawals never move chips from
                 anyone else. A random password is generated automatically; these accounts
                 are not meant to log in.
               </p>
-            )}
+            )} */}
 
             {kind === "deposit" && (
               <>
@@ -606,7 +918,7 @@ function QuickCreateForm({
                 )}
 
                 <Field label="Receipt Image">
-                  <div className="flex items-center gap-3 rounded-[5px] border-[0.5px] border-[rgba(163,190,209,0.5)] bg-white/50 px-[10px] py-2 dark:border-[rgba(0,145,255,0.2)] dark:bg-[rgba(0,145,255,0.06)]">
+                  <div className="flex w-full max-w-[729px] items-center gap-3 rounded-[5px] border-[0.5px] border-[rgba(163,190,209,0.5)] bg-white/50 px-[10px] py-2 dark:border-[rgba(0,145,255,0.2)] dark:bg-[rgba(0,145,255,0.06)]">
                     <label className="cursor-pointer rounded-[5px] border border-[#9cc9e0] bg-white/85 px-3 py-1.5 font-condensed text-[13px] leading-none font-medium whitespace-nowrap text-[#0e5484] hover:bg-white dark:border-[rgba(0,145,255,0.25)] dark:bg-[rgba(0,145,255,0.14)] dark:text-[#9ed4ff]">
                       Choose File
                       <input
@@ -706,7 +1018,7 @@ function QuickCreateForm({
                 {/* Kept mounted and collapsed by max-height so it can animate. */}
                 <div
                   className={
-                    "overflow-hidden transition-[max-height,opacity] duration-300 " +
+                    "w-full max-w-[729px] overflow-hidden transition-[max-height,opacity] duration-300 " +
                     (showAddBank ? "max-h-[520px] opacity-100" : "max-h-0 opacity-0")
                   }
                 >

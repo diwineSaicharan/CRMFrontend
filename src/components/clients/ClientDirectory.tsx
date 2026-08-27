@@ -17,8 +17,14 @@ import { ClientDetail } from "./ClientDetail";
 import { ColumnScroll } from "./ColumnScroll";
 
 /* Class strings ported from client-list.component.html. */
+/*
+ * Selected / unselected fills are mutually exclusive on purpose. Tailwind
+ * emits `.bg-transparent` AFTER `.bg-accent/20`, so putting both on one
+ * element lets the transparent rule win on source order and the selection
+ * never paints. Keep the transparent fill in the else-branch, not the base.
+ */
 const NAV_ITEM =
-  "mb-px flex w-full cursor-pointer items-center rounded-md border-0 bg-transparent p-2.5 " +
+  "mb-px flex w-full cursor-pointer items-center rounded-md border-0 p-2.5 " +
   "font-condensed text-[15px] leading-none font-normal text-[#1d4268] " +
   "transition-[background] duration-0 hover:bg-accent/10 " +
   // Dark values from `::ng-deep app-client-list` in admin.component.scss:
@@ -27,20 +33,15 @@ const NAV_ITEM =
   "dark:text-[#bde1ff] dark:hover:bg-[#006bbd1a]";
 
 /**
- * Selected state for a nav row and a client row.
+ * Selected state, as a fill and nothing else.
  *
- * The ported value is a 20%-opacity accent fill, which over the glass panel
- * is close to invisible — the selection was applied but unreadable. The bar
- * is added on top of that fill rather than replacing it, so the reference
- * colour still shows and the state is unmistakable.
+ * There was a 3px left bar here on the theory that the reference's 20% accent
+ * fill reads as invisible over the glass. It does not — `.active-menu` is
+ * `$client-active-tab-bg` (hsl(187 30% 54% / 0.2)) in light and
+ * rgba(0,98,198,0.25) in dark, and that is the whole treatment. The bar was a
+ * marker the admin panel never draws.
  */
-const SELECTED_MARKER =
-  "relative before:absolute before:inset-y-1.5 before:left-0 before:w-[3px] " +
-  "before:rounded-full before:bg-accent before:content-[''] " +
-  "dark:before:bg-[#0398ff]";
-
-const NAV_ITEM_ACTIVE =
-  "bg-accent/25 font-medium dark:bg-[rgba(0,98,198,0.25)] " + SELECTED_MARKER;
+const NAV_ITEM_ACTIVE = "bg-accent/20 dark:bg-[rgba(0,98,198,0.25)]";
 
 const SECTION_LABEL =
   "mb-1.5 px-2.5 font-condensed text-xs text-muted dark:text-[#4e8dc1]";
@@ -122,7 +123,7 @@ export function ClientDirectory({ entity, clients, loading }: ClientDirectoryPro
                           href="/clients"
                           className={
                             NAV_ITEM +
-                            (entity === option.value ? " " + NAV_ITEM_ACTIVE : "")
+                            (entity === option.value ? " " + NAV_ITEM_ACTIVE : " bg-transparent")
                           }
                         >
                           <NavIcon className="me-3 h-4 w-4 shrink-0" />
@@ -242,15 +243,14 @@ export function ClientDirectory({ entity, clients, loading }: ClientDirectoryPro
                 }
                 aria-current={selected?.id === client.id ? "true" : undefined}
                 className={
-                  "mb-px flex w-full cursor-pointer items-center rounded-md border-0 bg-transparent px-3 py-2.5 text-left transition-[background] duration-0 hover:bg-accent/10 " +
+                  "mb-px flex w-full cursor-pointer items-center rounded-md border-0 px-3 py-2.5 text-left transition-[background] duration-0 hover:bg-accent/10 " +
                   // `.user-list-item` dark: hover #006bbd1a; selected
                   // hsl(206 100% 37% / .2), which *lightens* to /.1 on hover.
                   "dark:hover:bg-[#006bbd1a] " +
                   (selected?.id === client.id
-                    ? "bg-accent/25 dark:bg-[hsl(206_100%_37%_/_0.25)] " +
-                      "dark:hover:bg-[hsl(206_100%_37%_/_0.2)] " +
-                      SELECTED_MARKER
-                    : "")
+                    ? "bg-accent/20 dark:bg-[hsl(206_100%_37%_/_0.2)] " +
+                      "dark:hover:bg-[hsl(206_100%_37%_/_0.1)]"
+                    : "bg-transparent")
                 }
               >
                 <span

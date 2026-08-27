@@ -115,7 +115,7 @@ export function ClientsPage({ entity }: { entity: ClientEntityKey }) {
             </kbd>
           </div>
 
-          {entity === "users" && (
+          {/* {entity === "users" && (
             <div className="flex items-center gap-2">
               <span className="text-xs text-[#337AAB] dark:text-[#bde1ff]">
                 Parent Role
@@ -132,15 +132,13 @@ export function ClientsPage({ entity }: { entity: ClientEntityKey }) {
                 ))}
               </select>
             </div>
-          )}
+          )} */}
         </div>
       </HeaderSlot>
 
-      {/* ── directory ─────────────────────────────────────────────────────
-          `app-client-list`'s own `:host` carries `padding: 1px` on top of the
-          `margin-top: 2px` the clients section gives it. Missing that 1px left
-          the whole glass panel a pixel up and to the left of the reference. */}
-      <div className="mt-0.5 min-h-0 flex-auto overflow-visible p-px">
+      {/* No top offset: the shell header is the shared 64px origin, so every
+          page panel starts on the same line. */}
+      <div className="min-h-0 flex-auto overflow-visible">
         <ClientDirectory
           entity={entity}
           clients={filtered}

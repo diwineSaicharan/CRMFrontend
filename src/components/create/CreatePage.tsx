@@ -18,8 +18,14 @@ const FORMS: Record<CreateEntityKey, () => React.JSX.Element> = {
   user: CreateUserForm,
 };
 
+/*
+ * Selected / unselected fills are mutually exclusive on purpose. Tailwind
+ * emits `.bg-transparent` AFTER `.bg-accent/20`, so putting both on one
+ * element lets the transparent rule win on source order and the selection
+ * never paints. Keep the transparent fill in the else-branch, not the base.
+ */
 const NAV_ITEM =
-  "mb-2 flex h-8 min-h-9 w-full cursor-pointer items-center gap-3 rounded-lg border-0 bg-transparent " +
+  "mb-2 flex h-8 min-h-9 w-full cursor-pointer items-center gap-3 rounded-lg border-0 " +
   "px-3 py-1 text-left text-headings transition-colors hover:bg-accent/20 " +
   "dark:text-[#bde1ff] dark:hover:bg-[rgba(0,145,255,0.15)]";
 
@@ -65,7 +71,7 @@ export function CreatePage({ entity }: { entity: CreateEntityKey }) {
               key={option.value}
               href={`/create/${option.value}`}
               className={
-                NAV_ITEM + (entity === option.value ? " " + NAV_ITEM_ACTIVE : "")
+                NAV_ITEM + (entity === option.value ? " " + NAV_ITEM_ACTIVE : " bg-transparent")
               }
             >
               {option.ligature ? (

@@ -54,3 +54,49 @@
   border-right: 1px solid var(--sidebar-popover-border);
   box-shadow: var(--sidebar-popover-shadow);
 }
+
+/* ── section title ───────────────────────────────────────────────────────────
+   `.sidebar.minimized .sidebar-section-title` from sidebar.component.scss.
+
+   The point is that the title keeps its box in BOTH states: 20px tall with a
+   9px bottom margin, so every icon below it sits on exactly the same line
+   whether the rail is open or collapsed. Unmounting the label when minimized
+   is what pulled the whole icon column 29px up per section.
+
+   The text itself is hidden with `font-size: 0` rather than removed, and a
+   `::before` draws the `...` centred in the 24px rail column. */
+.sectionTitle {
+  display: flex;
+  align-items: center;
+  height: 20px;
+  margin-bottom: 9px;
+  padding: 0 12px;
+  font-size: 12px;
+  line-height: 16px;
+  white-space: nowrap;
+  color: #6a95b9;
+}
+
+:global(.dark) .sectionTitle {
+  color: #4e8dc1;
+}
+
+.sectionTitleMinimized {
+  justify-content: center;
+  width: 24px;
+  padding: 0;
+  margin: 0 0 9px 11px;
+  overflow: hidden;
+  opacity: 1;
+  font-size: 0;
+  line-height: 0;
+}
+
+.sectionTitleMinimized::before {
+  content: "...";
+  display: block;
+  font-size: 14px;
+  font-weight: 600;
+  line-height: 1;
+  letter-spacing: 1px;
+}

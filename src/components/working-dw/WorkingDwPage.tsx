@@ -298,7 +298,7 @@ export function WorkingDwPage({ tab }: { tab: DwTab }) {
           )}
 
           {!isLoading && filtered.length > 0 && (
-            <div className="relative flex min-h-0 min-w-0 flex-1">
+            <div className="relative flex min-h-0 min-w-0 flex-1 mr-[10px]">
               <div
                 className={
                   styles.tableScroll +

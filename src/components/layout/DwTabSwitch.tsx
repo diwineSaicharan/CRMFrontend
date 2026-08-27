@@ -91,10 +91,14 @@ export function DwTabSwitch() {
     };
   }, [pathname, liveTick]);
 
-  // Withdrawals is the only route that lights the right-hand side; everywhere
-  // else the switch shows Deposit as the default landing side.
-  const tab: DwTab = pathname === DW_PATHS.withdrawal ? "withdrawal" : "deposit";
-  const isDeposit = tab === "deposit";
+  // Only the two queue routes light a side. Everywhere else *neither* is
+  // selected: falling back to "deposit" made the switch look like a live
+  // selection on Clients, Create and Transactions, and leaving one of those
+  // pages left it stuck on. `null` also means the sliding indicator hides
+  // rather than parking under a half nothing has chosen.
+  let tab: DwTab | null = null;
+  if (pathname === DW_PATHS.deposit) tab = "deposit";
+  else if (pathname === DW_PATHS.withdrawal) tab = "withdrawal";
 
   /**
    * Only the queues this account holds. A teammate granted deposits alone was
@@ -118,14 +122,14 @@ export function DwTabSwitch() {
         " relative flex flex-none items-center rounded-[0.55rem] p-1"
       }
     >
-      {isSwitch && (
+      {isSwitch && tab !== null && (
         <span
           aria-hidden="true"
           className={
             styles.tabIndicator +
             " pointer-events-none absolute top-1 bottom-1 left-1 w-[calc(50%-0.25rem)] rounded-[0.4rem]"
           }
-          style={{ transform: isDeposit ? "none" : "translateX(100%)" }}
+          style={{ transform: tab === "deposit" ? "none" : "translateX(100%)" }}
         />
       )}
 

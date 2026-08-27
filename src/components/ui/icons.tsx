@@ -70,31 +70,53 @@ export function CreateUserIcon(props: IconProps) {
 }
 
 /** lucide-banknote-arrow-up */
-export function CreateDepositIcon(props: IconProps) {
+/**
+ * A single letter in the lucide frame's 24px box.
+ *
+ * Deliberately not routed through LucideIcon: that frame is `fill="none"
+ * stroke="currentColor"`, which would draw a hollow outlined letter. `<text>`
+ * wants the opposite — a fill and no stroke.
+ *
+ * The box, and the fact the colour is `currentColor`, are what matter: the
+ * caller's existing `h-5 w-5 text-[#50708d] dark:text-[#bde1ff]` keeps working
+ * untouched, so both themes are exactly as they were. `fontFamily: inherit`
+ * picks up the app face rather than the browser's SVG default of serif.
+ */
+function LetterIcon({ letter, ...props }: IconProps & { letter: string }) {
   return (
-    <LucideIcon {...props}>
-      <path d="M12 18H4a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5" />
-      <path d="M18 12h.01" />
-      <path d="M19 22v-6" />
-      <path d="m22 19-3-3-3 3" />
-      <path d="M6 12h.01" />
-      <circle cx="12" cy="12" r="2" />
-    </LucideIcon>
+    <svg
+      xmlns="http://www.w3.org/2000/svg"
+      width="24"
+      height="24"
+      viewBox="0 0 24 24"
+      fill="none"
+      aria-hidden="true"
+      {...props}
+    >
+      <text
+        x="12"
+        y="12"
+        textAnchor="middle"
+        dominantBaseline="central"
+        fill="currentColor"
+        stroke="none"
+        // 15 rather than 22: two glyphs have to fit the same 24px box.
+        style={{ fontFamily: "inherit", fontSize: 20, fontWeight: 500 }}
+      >
+        {letter}
+      </text>
+    </svg>
   );
 }
 
-/** lucide-banknote-arrow-down */
+/** "D+", for Create Deposit on the right rail. */
+export function CreateDepositIcon(props: IconProps) {
+  return <LetterIcon letter="D+" {...props} />;
+}
+
+/** "W+", for Create Withdrawal on the right rail. */
 export function CreateWithdrawalIcon(props: IconProps) {
-  return (
-    <LucideIcon {...props}>
-      <path d="M12 18H4a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5" />
-      <path d="m16 19 3 3 3-3" />
-      <path d="M18 12h.01" />
-      <path d="M19 16v6" />
-      <path d="M6 12h.01" />
-      <circle cx="12" cy="12" r="2" />
-    </LucideIcon>
-  );
+  return <LetterIcon letter="W+" {...props} />;
 }
 
 /* ── clients nav (assets/icons/newMaster|dl|super|master|teammate.svg) ─────

@@ -212,6 +212,14 @@ const SIDEBAR_MODE_BY_PREFIX: Array<[string, SidebarMode]> = [
   ["/deposits", "rail"],
   ["/withdrawals", "rail"],
   ["/transactions", "rail"],
+  // Every quick-create sheet. Each lays itself out from
+  // `left-[var(--shell-sidebar-minimized-width)]`, so the sidebar has to be a
+  // rail underneath it or the two overlap. Listed by route rather than by which
+  // form is open: the path is what decides the form, so this is the same fact
+  // stated once.
+  ["/create-user", "rail"],
+  ["/create-deposit", "rail"],
+  ["/create-withdrawal", "rail"],
   // Form-first, like /create: the sidebar stays expanded rather than
   // collapsing to the rail the queues use.
   ["/teammates", "expanded"],

@@ -36,6 +36,18 @@
   --shell-sidebar-minimized-width: 4rem;
   --shell-rail-width: 4.25rem;
   --shell-content-top-padding: 10px;
+
+  /* The shell header IS .clients-search-toolbar, so it is sized the way the
+     reference sizes that one: .clients-search-container contributes a 4px
+     margin-top, the row itself is 42px (the 40px search, or the Parent Role
+     block whose mt-3 makes it 42), and the toolbar adds 0.75rem of bottom
+     padding. 4 + 42 + 12 = 58.
+
+     A constant, NOT "64px - top-padding". The reference stacks this toolbar
+     after the workspace inset, so the panel below starts at top-padding + this;
+     pinning it to a fixed 64/68px line instead makes the toolbar itself a
+     different height at every breakpoint, which is what pushed the panel down. */
+  --shell-header-height: 58px;
   --shell-content-bottom-padding: 10px;
   --shell-content-height: calc(
     100vh - var(--shell-content-top-padding) 
@@ -50,6 +62,10 @@
   :root {
     --shell-rail-width: 4.4rem;
     --shell-content-top-padding: 7px;
+    /* .clients-search-toolbar drops to "padding: 0 0 0.6rem" here, so the band
+       is 4 + 42 + 9.6. Missing this override is what left the panel ~5px low on
+       wide screens even after the rest of the geometry matched. */
+    --shell-header-height: 55.6px;
   }
 }
 

@@ -1,5 +1,6 @@
 "use client";
 
+import Link from "next/link";
 import type { ReactNode } from "react";
 
 import type { Client } from "@/lib/clients";
@@ -108,7 +109,10 @@ const ICONS = {
 
 const ICON_CIRCLE =
   "flex h-9 w-9 min-h-9 min-w-9 shrink-0 items-center justify-center rounded-full " +
-  "bg-accent/10 font-normal text-headings dark:border dark:border-white/8 dark:bg-white/10 dark:text-[#bde1ff]";
+  // A border in both modes, transparent in light: adding one only in dark
+  // would change the box in one theme and shift the row.
+  "border border-transparent bg-accent/10 font-normal text-headings " +
+  "dark:border-white/8 dark:bg-white/10 dark:text-[#bde1ff]";
 
 function DetailField({
   icon,
@@ -154,7 +158,35 @@ export function ClientDetail({ client, config }: ClientDetailProps) {
           <div className="mx-auto mt-5 block w-full max-w-xl rounded-lg bg-card p-2 dark:bg-[#0091ff1a]">
             {/* Hero. The row-action strip that used to sit under the name is
                 gone, so the fixed 229px that was sized around it goes too. */}
-            <div className="flex flex-col items-center justify-evenly gap-3 overflow-visible bg-[#67a5ad1a] p-5 dark:bg-[#006bbd1a]">
+            <div className="relative flex flex-col items-center justify-evenly gap-3 overflow-visible bg-[#67a5ad1a] p-5 dark:bg-[#006bbd1a]">
+              {/* `.icon-button` from row-actions.component.scss: a 32px square with
+                  a #9CB4C2 hairline and no fill, the glyph at 20px, and the only
+                  hover affordance being the icon scaling to 1.15. Dark values
+                  are the `::ng-deep app-row-actions` override in
+                  admin.component.scss. Sits top-right, clear of the centred
+                  avatar and name. */}
+              <Link
+                href={`/clients/${encodeURIComponent(client.id)}/edit`}
+                title="Edit User"
+                aria-label={`Edit ${client.username}`}
+                className="group absolute top-2 right-2 z-10 flex h-8 w-8 min-w-8 items-center justify-center overflow-visible rounded-lg border border-[#9CB4C2] p-0 text-[#555] transition-all duration-200 hover:z-20 dark:border-[rgba(158,212,255,0.72)] dark:bg-[rgba(16,42,68,0.32)] dark:text-[#bde1ff]"
+              >
+                <svg
+                  xmlns="http://www.w3.org/2000/svg"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  strokeWidth={2}
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  aria-hidden="true"
+                  className="h-5 w-5 transition-all duration-200 group-hover:scale-[1.15]"
+                >
+                  <path d="M21.174 6.812a1 1 0 0 0-3.986-3.987L3.842 16.174a2 2 0 0 0-.5.83l-1.321 4.352a.5.5 0 0 0 .623.622l4.353-1.32a2 2 0 0 0 .83-.497z" />
+                  <path d="m15 5 4 4" />
+                </svg>
+              </Link>
+
               <span
                 className="flex aspect-square w-32 shrink-0 items-center justify-center overflow-hidden rounded-full text-[48px] leading-none font-bold text-white shadow-[0_1px_3px_rgba(15,23,42,0.08)]"
                 style={{ backgroundColor: getClientAvatarColor(client.username) }}
@@ -169,11 +201,6 @@ export function ClientDetail({ client, config }: ClientDetailProps) {
 
             <div className="p-3">
               <div className="grid grid-cols-1 gap-x-8">
-                <DetailField
-                  icon={<span className="material-icons text-[20px]">trending_up</span>}
-                  label="Exposure"
-                  value={formatIndianCurrency(client.exposure)}
-                />
                 <DetailField
                   icon={ICONS.listSort}
                   label="Category"

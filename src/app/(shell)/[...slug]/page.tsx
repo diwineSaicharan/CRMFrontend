@@ -1,6 +1,7 @@
 import { notFound, redirect } from "next/navigation";
 
 import { ClientsPage } from "@/components/clients/ClientsPage";
+import { EditClientPage } from "@/components/clients/EditClientPage";
 import { CreatePage } from "@/components/create/CreatePage";
 import { CREATE_LABELS, type CreateEntityKey } from "@/components/create/create-nav.config";
 import { CompletedTransactionsPage } from "@/components/transactions/CompletedTransactionsPage";
@@ -30,6 +31,9 @@ export default async function ShellRoute({ params }: PageProps<"/[...slug]">) {
 
   switch (section) {
     case "clients":
+      // /clients/:id/edit is a real route, not a modal: leaving it is then a
+      // navigation, which is what makes Cancel and the sidebar work.
+      if (rest[1] === "edit") return <EditClientPage clientId={rest[0]} />;
       // rest[0] is the selected client id. ClientDirectory reads it off the
       // pathname rather than from here, because an in-app click updates the
       // URL with history.pushState instead of routing.

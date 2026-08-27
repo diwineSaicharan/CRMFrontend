@@ -1,24 +1,74 @@
-/* Tokens mirror WorkingDw.module.css so the two operations screens read as one
-   surface. Declared on .page because the header row is portaled out of this
-   subtree and would otherwise lose them. */
+/*
+  Ported from completed-transactions.component.scss.
+
+  Declared on .page because the header row is portaled out of this subtree and
+  would otherwise lose the tokens.
+*/
 .page {
   --ct-headings: #214055;
   --ct-muted: #6a95b9;
+  --ct-line: rgba(178, 204, 203, 0.5);
   --ct-border: hsl(202 70% 81%);
   --ct-hairline: rgba(33, 64, 85, 0.08);
   --ct-row-hover: rgba(255, 255, 255, 0.45);
   --ct-search-bg: rgba(255, 255, 255, 0.55);
   --ct-search-border: rgba(255, 255, 255, 0.9);
+
+  /* Surfaces the port had dropped. Every value is the reference's own:
+     .ct-tabs 0.5 white, .ct-tab hover 0.7 / active 0.95, .ct-total and the
+     controls 0.6 / 0.65 behind a 0.9 white hairline, .table-container 0.4. */
+  --ct-tabs-bg: rgba(255, 255, 255, 0.5);
+  --ct-tab-hover: rgba(255, 255, 255, 0.7);
+  --ct-tab-active: rgba(255, 255, 255, 0.95);
+  --ct-tab-active-shadow: 0 1px 4px rgba(20, 60, 95, 0.08);
+  --ct-block-bg: rgba(255, 255, 255, 0.6);
+  --ct-block-border: rgba(255, 255, 255, 0.9);
+  --ct-control-bg: rgba(255, 255, 255, 0.65);
+  --ct-table-bg: rgba(255, 255, 255, 0.4);
+
+  /* `thead th` is 0.85 opaque in the reference, not the search field's 0.55 —
+     a translucent header lets the rows read straight through it as they
+     scroll under, which is what made the two look overlapped. */
+  --ct-head-bg: rgba(255, 255, 255, 0.96);
+  --ct-head-ink: var(--ct-muted);
+  --ct-td-ink: var(--ct-headings);
+
+  /* Rail palette: the same two stops the sidebar and client directory use. */
+  --ct-scroll-thumb: rgba(178, 204, 203, 0.72);
+  --ct-scroll-thumb-hover: #9fc2c1;
+  --ct-scroll-thumb-glow: rgba(159, 194, 193, 0.58);
+  --ct-scroll-track: transparent;
+  --ct-scroll-track-hover: rgba(178, 204, 203, 0.16);
 }
 
 :global(.dark) .page {
-  --ct-headings: hsl(207 100% 87%);
-  --ct-muted: #4e8dc1;
-  --ct-border: #0062ad;
+  --ct-headings: #d8eeff;
+  --ct-muted: rgba(158, 212, 255, 0.75);
+  --ct-line: rgba(0, 145, 255, 0.15);
+  --ct-border: rgba(0, 145, 255, 0.2);
   --ct-hairline: rgba(0, 145, 255, 0.15);
-  --ct-row-hover: rgba(0, 107, 189, 0.1);
+  --ct-row-hover: rgba(0, 145, 255, 0.12);
   --ct-search-bg: rgba(0, 145, 255, 0.08);
-  --ct-search-border: rgba(0, 98, 198, 0.5);
+  --ct-search-border: rgba(0, 145, 255, 0.2);
+
+  --ct-tabs-bg: rgba(0, 145, 255, 0.06);
+  --ct-tab-hover: rgba(0, 145, 255, 0.12);
+  --ct-tab-active: rgba(0, 145, 255, 0.22);
+  --ct-tab-active-shadow: none;
+  --ct-block-bg: rgba(0, 145, 255, 0.08);
+  --ct-block-border: rgba(0, 145, 255, 0.2);
+  --ct-control-bg: rgba(0, 145, 255, 0.08);
+  --ct-table-bg: rgba(0, 145, 255, 0.04);
+
+  --ct-head-bg: rgba(0, 38, 71, 0.96);
+  --ct-head-ink: rgba(158, 212, 255, 0.8);
+  --ct-td-ink: #9ed4ff;
+
+  --ct-scroll-thumb: rgba(3, 111, 182, 0.82);
+  --ct-scroll-thumb-hover: #0398ff;
+  --ct-scroll-thumb-glow: rgba(3, 152, 255, 0.52);
+  --ct-scroll-track: rgba(0, 145, 255, 0.04);
+  --ct-scroll-track-hover: rgba(0, 145, 255, 0.12);
 }
 
 .search input {
@@ -31,7 +81,9 @@
   color: var(--ct-headings);
   font-size: 13.5px;
   outline: none;
-  transition: border-color 200ms, background 200ms;
+  transition:
+    border-color 200ms,
+    background 200ms;
 }
 
 .search input::placeholder {
@@ -48,32 +100,145 @@
   appearance: none;
 }
 
-/* The table scrolls inside its own box; the page never scrolls sideways. */
+/* ── scroll rail ─────────────────────────────────────────────────────────────
+   `%themed-scroll` from the reference: a real 6px rail here, unlike the client
+   columns, because this table has no overlay-rail directive behind it. */
 .tableWrap {
+  border-radius: 10px;
+  background: var(--ct-table-bg);
   overflow-x: auto;
+  scrollbar-width: thin;
+  scrollbar-color: var(--ct-scroll-thumb) var(--ct-scroll-track);
 }
+
+.tableWrap::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+
+.tableWrap::-webkit-scrollbar-track {
+  border-radius: 999px;
+  background: var(--ct-scroll-track);
+}
+
+.tableWrap::-webkit-scrollbar-track:hover {
+  background: var(--ct-scroll-track-hover);
+}
+
+.tableWrap::-webkit-scrollbar-thumb {
+  border-radius: 999px;
+  background: var(--ct-scroll-thumb);
+  transition: all 0.25s ease;
+}
+
+.tableWrap::-webkit-scrollbar-thumb:hover {
+  background: var(--ct-scroll-thumb-hover);
+  box-shadow: 0 0 8px var(--ct-scroll-thumb-glow);
+}
+
+.tableWrap::-webkit-scrollbar-corner {
+  background: transparent;
+}
+
+/* ── table ───────────────────────────────────────────────────────────────── */
 
 .table th {
   position: sticky;
   top: 0;
-  z-index: 1;
+  /* Above the cells it covers. The rows carry no z-index, but a `position`
+     alone is not enough once anything below paints — keep it explicit. */
+  z-index: 3;
+  -webkit-backdrop-filter: blur(10px);
+  backdrop-filter: blur(10px);
   padding: 0.6rem 0.75rem;
   text-align: left;
+  font-size: 12px;
   font-weight: 500;
   white-space: nowrap;
-  color: var(--ct-muted);
-  background: var(--ct-search-bg);
-  backdrop-filter: blur(10px);
-  -webkit-backdrop-filter: blur(10px);
+  color: var(--ct-head-ink);
+  background: var(--ct-head-bg);
   border-bottom: 1px solid var(--ct-border);
 }
 
 .table td {
   padding: 0.55rem 0.75rem;
-  color: var(--ct-headings);
+  color: var(--ct-td-ink);
   border-bottom: 1px solid var(--ct-hairline);
 }
 
 .table tbody tr:hover td {
   background: var(--ct-row-hover);
+}
+
+/* ── tabs / filters / total ──────────────────────────────────────────────────
+   `.ct-tabs`, `.ct-tab`, `.ct-total` and the 38px controls from
+   completed-transactions.component.scss. These carried no surface at all in
+   the port, which is why the row read as loose text on the glass. */
+.tabs {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  min-height: 50px;
+  padding: 6px;
+  border-radius: 12px;
+  background: var(--ct-tabs-bg);
+}
+
+.tab {
+  flex: 0 0 auto;
+  padding: 9px 22px;
+  border: 0;
+  border-radius: 8px;
+  background: transparent;
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--ct-headings);
+  white-space: nowrap;
+  cursor: pointer;
+  transition: background 0.2s ease;
+}
+
+.tab:hover {
+  background: var(--ct-tab-hover);
+}
+
+.tabActive {
+  background: var(--ct-tab-active);
+  box-shadow: var(--ct-tab-active-shadow);
+}
+
+/* `.ct-total` is a bordered block in the reference, not bare text. */
+.total {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 2px;
+  padding: 8px 16px;
+  border: 1px solid var(--ct-block-border);
+  border-radius: 10px;
+  background: var(--ct-block-bg);
+}
+
+/* `.ct-select` / `.ct-refresh`: one 38px control shape, one surface. */
+.control {
+  height: 38px;
+  padding: 0 12px;
+  border: 1px solid var(--ct-block-border);
+  border-radius: 8px;
+  background-color: var(--ct-control-bg);
+  color: var(--ct-headings);
+  font-size: 13px;
+}
+
+.control:focus {
+  outline: none;
+}
+
+.iconControl {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 38px;
+  padding: 0;
+  cursor: pointer;
 }

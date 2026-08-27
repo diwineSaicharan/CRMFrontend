@@ -87,7 +87,13 @@ export const dwApi = {
     fullName?: string;
     mobileNumber?: string;
     category?: string;
+    /** First of `platformIds`; the controller's single-platform column. */
     platformId?: string;
+    platformIds?: string[];
+    alternateMobileNumber?: string;
+    dateOfJoining?: string;
+    location?: string;
+    leadSource?: string;
   }) =>
     api.post<ApiResponse<{ id: string; username: string }>>(
       `${BASE}/create-dummy-user`,

@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { usePathname } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
 
 import { useAuth } from "@/components/auth/AuthProvider";
 import { useMemo, useState } from "react";
@@ -13,6 +13,7 @@ import {
   type SidebarIconName,
   type UserRole,
 } from "@/lib/nav-config";
+import { useQuickCreate } from "@/components/quick-create/QuickCreateProvider";
 import styles from "./Sidebar.module.css";
 
 /* Class strings below are lifted from sidebar.component.html so the pill
@@ -110,6 +111,8 @@ export function Sidebar({
 }: SidebarProps) {
   const pathname = usePathname();
   const { permissions } = useAuth();
+  const router = useRouter();
+  const quickCreate = useQuickCreate();
   const sections = useMemo(
     () => filterNavForRole(NAV_SECTIONS, userRole, permissions),
     [userRole, permissions],
@@ -126,6 +129,23 @@ export function Sidebar({
 
   const isHrefActive = (href: string) =>
     pathname === href || pathname.startsWith(href + "/");
+
+  /**
+   * A sidebar row always lands you on its section, even from a sub-route or
+   * with a quick-create sheet open over it.
+   *
+   * Clicking "Clients" from /clients with the Create Deposit sheet up used to do
+   * nothing at all: <Link> sees the same href, skips the navigation, so no route
+   * change fires and nothing dismisses the sheet. Closing it here covers that,
+   * and pushing covers the other half — from /clients/:id/edit the href does
+   * differ, but Link would leave the deeper path in place otherwise.
+   */
+  const onNavClick = (href: string) => (event: React.MouseEvent) => {
+    quickCreate.close();
+    if (pathname === href) return;
+    event.preventDefault();
+    router.push(href);
+  };
 
   /*
    * Box metrics come from sidebar.component.scss, not admin.component.scss.
@@ -178,11 +198,18 @@ export function Sidebar({
               key={section.id}
               className="sidebar-section flex w-full shrink-0 flex-col gap-0"
             >
-              {!isMinimized && (
-                <div className="sidebar-section-title mb-[9px] flex h-5 items-center px-3 text-xs leading-4 whitespace-nowrap text-[#6a95b9] dark:text-[#4e8dc1]">
-                  {section.title}
-                </div>
-              )}
+              {/* Always mounted. Minimized it keeps the same 20px + 9px box and
+                  shows "..." instead of the label, so the icons below do not
+                  move between states — see .sectionTitleMinimized. */}
+              <div
+                className={
+                  "sidebar-section-title " +
+                  styles.sectionTitle +
+                  (isMinimized ? " " + styles.sectionTitleMinimized : "")
+                }
+              >
+                {section.title}
+              </div>
 
               {section.items.map((item) => {
                 const childActive = item.children?.some((child) =>
@@ -201,6 +228,7 @@ export function Sidebar({
                     <Link
                       key={item.id}
                       href={item.href}
+                      onClick={onNavClick(item.href)}
                       data-active={active}
                       className={NAV_BUTTON}
                       title={isMinimized ? item.label : undefined}
@@ -246,6 +274,7 @@ export function Sidebar({
                             <Link
                               key={child.id}
                               href={child.href}
+                              onClick={onNavClick(child.href)}
                               data-active={childIsActive}
                               className={SUBMENU_OPTION}
                             >

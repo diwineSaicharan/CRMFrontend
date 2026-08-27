@@ -162,7 +162,7 @@ export function CompletedTransactionsPage() {
         </div>
       </HeaderSlot>
 
-      <div className="mt-0.5 flex min-h-0 flex-auto flex-col overflow-hidden rounded-xl border-[7px] border-transparent bg-white/30 shadow-[0_0_0_1px_rgba(255,255,255,0.5)] dark:bg-[#0091ff0d] dark:shadow-[0_0_0_1px_rgb(0,145,255,0.15)]">
+      <div className="flex min-h-0 flex-auto flex-col overflow-hidden rounded-xl border-[7px] border-transparent bg-white/30 shadow-[0_0_0_1px_rgba(255,255,255,0.5)] dark:bg-[#0091ff0d] dark:shadow-[0_0_0_1px_rgb(0,145,255,0.15)]">
         {/* ── heading strip ─────────────────────────────────────────────── */}
         <div className="mb-3 flex flex-wrap items-start justify-between gap-4 rounded-xl bg-white/50 px-5 py-4 dark:bg-white/5">
           <div className="flex items-start gap-3">
@@ -179,19 +179,19 @@ export function CompletedTransactionsPage() {
             </div>
           </div>
 
-          <div className="text-right">
-            <div className="text-[11px] tracking-wide text-[#6a95b9] dark:text-[#9ED4FF]/70">
+          <div className={styles.total}>
+            <span className="text-[10px] tracking-[0.6px] text-[var(--ct-muted)]">
               TOTAL
-            </div>
-            <div className="text-xl font-semibold text-[#214055] tabular-nums dark:text-[#D8EEFF]">
+            </span>
+            <span className="text-xl font-semibold text-[var(--ct-headings)] tabular-nums">
               {total.toLocaleString()}
-            </div>
+            </span>
           </div>
         </div>
 
         {/* ── tabs and filters ──────────────────────────────────────────── */}
         <div className="mb-3 flex flex-wrap items-center gap-2 px-2">
-          <div role="tablist" aria-label="Transaction type" className="flex gap-1">
+          <div role="tablist" aria-label="Transaction type" className={styles.tabs}>
             {TABS.map((item) => {
               const active = tab === item.key;
               return (
@@ -204,10 +204,7 @@ export function CompletedTransactionsPage() {
                     setParam({ type: item.key === "ALL" ? null : item.key })
                   }
                   className={
-                    "cursor-pointer rounded-full border px-3.5 py-1.5 text-[13px] font-medium transition-colors " +
-                    (active
-                      ? "border-[#34a853] bg-[#B2CCCB] text-[#214055] dark:border-[#34a853] dark:bg-[#0B3A63] dark:text-[#D8EEFF]"
-                      : "border-[#9DBFBE] bg-transparent text-[#6a95b9] hover:bg-white/40 dark:border-[#0062AD] dark:text-[#9ED4FF]/80 dark:hover:bg-[#0E4A80]")
+                    styles.tab + (active ? " " + styles.tabActive : "")
                   }
                 >
                   {item.label}
@@ -220,7 +217,10 @@ export function CompletedTransactionsPage() {
             value={platformId}
             onChange={(event) => setParam({ platform: event.target.value || null })}
             aria-label="Platform"
-            className="rounded-md border border-[#c7d9e6] bg-white px-2 py-1.5 text-[13px] text-[#214055] dark:border-[#3a5f79] dark:bg-[#0f2230] dark:text-[#d7ecff]"
+            className={
+              styles.control +
+              " min-w-[180px] dark:[&>option]:bg-[#002b52] dark:[&>option]:text-[#9ed4ff]"
+            }
           >
             <option value="">All Platforms</option>
             {platformOptions.map((p) => (
@@ -235,7 +235,7 @@ export function CompletedTransactionsPage() {
             onClick={() => setReloadKey((n) => n + 1)}
             title="Refresh"
             aria-label="Refresh"
-            className="grid h-8 w-8 cursor-pointer place-items-center rounded-md border border-[#9DBFBE] text-[#214055] hover:bg-white/40 dark:border-[#0062AD] dark:text-[#9ED4FF] dark:hover:bg-[#0E4A80]"
+            className={styles.control + " " + styles.iconControl}
           >
             <span className="material-icons text-[18px]">refresh</span>
           </button>

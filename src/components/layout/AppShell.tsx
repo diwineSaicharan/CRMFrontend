@@ -4,10 +4,7 @@ import { usePathname } from "next/navigation";
 import { useState, type ReactNode } from "react";
 
 import { QuickCreateModal } from "@/components/quick-create/QuickCreateModal";
-import {
-  QuickCreateProvider,
-  useQuickCreate,
-} from "@/components/quick-create/QuickCreateProvider";
+import { QuickCreateProvider } from "@/components/quick-create/QuickCreateProvider";
 import { DwTabSwitch } from "./DwTabSwitch";
 import { HeaderSlotProvider } from "./HeaderSlot";
 import { RightRail } from "./RightRail";
@@ -40,17 +37,14 @@ export function AppShell({ children, userRole = "ADMIN" }: AppShellProps) {
 
 function ShellChrome({ children, userRole }: AppShellProps) {
   const pathname = usePathname();
-  const { kind } = useQuickCreate();
   const [hovered, setHovered] = useState(false);
 
-  // The quick-create sheet lays itself out from the rail width
-  // (`left-[var(--shell-sidebar-minimized-width)]`), so a deposit or withdrawal
-  // form collapses the sidebar whatever the route would otherwise say. It still
-  // expands on hover: the sidebar is z-[200] against the sheet's z-[150].
-  const isRail =
-    sidebarModeForPath(pathname) === "rail" ||
-    kind === "deposit" ||
-    kind === "withdrawal";
+  // Purely the route now. Each quick-create form has its own path and the
+  // open form is derived from it, so the /create-* entries in
+  // SIDEBAR_MODE_BY_PREFIX already cover what a per-kind check used to — and
+  // that check had quietly left Create User expanded. The rail still opens on
+  // hover: the sidebar is z-[200] against the sheet's z-[150].
+  const isRail = sidebarModeForPath(pathname) === "rail";
   const minimized = isRail && !hovered;
 
   // The workspace is offset by the route's *base* width, never the hovered
@@ -91,7 +85,17 @@ function ShellChrome({ children, userRole }: AppShellProps) {
         <HeaderSlotProvider>
           {(setSlot) => (
             <>
-              <header className="flex flex-none items-center gap-2.5 px-3 pb-2">
+              {/* A fixed band, not one sized by its contents: sizing it to
+                  content left each page's panel starting on a different line,
+                  which is the border that moved when tab-switching.
+
+                  The height itself is --shell-header-height, which restates
+                  `.clients-search-toolbar` from admin.component.scss and tracks
+                  its 1440px override. `pt-[5px]` is that toolbar's own 4px
+                  container margin plus the 1px from centring the 40px search in
+                  a 42px row, so the search bar and the panel below it both land
+                  where the reference puts them. */}
+              <header className="box-border flex h-[var(--shell-header-height)] flex-none items-start gap-2.5 px-3 pt-[5px]">
                 <div ref={setSlot} className="flex min-w-0 flex-1 items-center" />
                 <DwTabSwitch />
               </header>

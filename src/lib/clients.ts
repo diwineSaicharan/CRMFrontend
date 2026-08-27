@@ -62,6 +62,13 @@ export interface Client {
   isSportsLocked?: boolean;
   isCasinoLocked?: boolean;
   sharingTree?: string;
+  /** CRM fields, stored on user_master — see CRMBackend/src/db/crm-schema.ts. */
+  alternateMobileNumber?: string | null;
+  dateOfJoining?: string | null;
+  location?: string | null;
+  leadSource?: string | null;
+  /** Every platform the user can reach, from "UserPlatformAccess". */
+  platformIds?: string[];
   /** Upline, nearest parent first; empty or absent hides the block. */
   parents?: ParentHierarchyEntry[];
   transactions?: ClientTransaction[];
@@ -75,6 +82,38 @@ const LIST_ENDPOINT: Record<ClientEntityKey, string> = {
 export interface ClientListResponse {
   items: Client[];
   total: number;
+}
+
+export interface UpdateClientInput {
+  fullName?: string;
+  mobileNumber?: string | null;
+  alternateMobileNumber?: string | null;
+  dateOfJoining?: string | null;
+  location?: string | null;
+  leadSource?: string | null;
+  category?: string;
+  /** A full replace of the user's platform access, not a merge. */
+  platformIds?: string[];
+}
+
+/** GET /api/end-users/:id — the edit page loads its own copy of the row. */
+export async function fetchClient(id: string): Promise<Client | null> {
+  const res = await api.get<ApiResponse<Client>>(
+    `/end-users/${encodeURIComponent(id)}`,
+  );
+  return res.data ?? null;
+}
+
+/** PUT /api/end-users/:id — the Clients edit page. */
+export async function updateClient(
+  id: string,
+  input: UpdateClientInput,
+): Promise<Client | null> {
+  const res = await api.put<ApiResponse<Client>>(
+    `/end-users/${encodeURIComponent(id)}`,
+    input,
+  );
+  return res.data ?? null;
 }
 
 export async function fetchClients(
