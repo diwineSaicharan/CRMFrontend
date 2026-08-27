@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import { useMemo, useState } from "react";
+import { useRouter } from "next/navigation";
 
 import type { Client, ClientEntityKey } from "@/lib/clients";
 import {
@@ -25,7 +26,21 @@ const NAV_ITEM =
   // rgba(0,98,198,0.25) — the accent teal never applies in dark.
   "dark:text-[#bde1ff] dark:hover:bg-[#006bbd1a]";
 
-const NAV_ITEM_ACTIVE = "bg-accent/20 dark:bg-[rgba(0,98,198,0.25)]";
+/**
+ * Selected state for a nav row and a client row.
+ *
+ * The ported value is a 20%-opacity accent fill, which over the glass panel
+ * is close to invisible — the selection was applied but unreadable. The bar
+ * is added on top of that fill rather than replacing it, so the reference
+ * colour still shows and the state is unmistakable.
+ */
+const SELECTED_MARKER =
+  "relative before:absolute before:inset-y-1.5 before:left-0 before:w-[3px] " +
+  "before:rounded-full before:bg-accent before:content-[''] " +
+  "dark:before:bg-[#0398ff]";
+
+const NAV_ITEM_ACTIVE =
+  "bg-accent/25 font-medium dark:bg-[rgba(0,98,198,0.25)] " + SELECTED_MARKER;
 
 const SECTION_LABEL =
   "mb-1.5 px-2.5 font-condensed text-xs text-muted dark:text-[#4e8dc1]";
@@ -58,13 +73,19 @@ export interface ClientDirectoryProps {
   entity: ClientEntityKey;
   clients: Client[];
   loading?: boolean;
+  /** The id in the URL. Absent means "nothing picked yet". */
+  selectedId?: string;
 }
 
-export function ClientDirectory({ entity, clients, loading }: ClientDirectoryProps) {
+export function ClientDirectory({
+  entity,
+  clients,
+  loading,
+  selectedId,
+}: ClientDirectoryProps) {
   const config = CLIENT_DIRECTORY_CONFIGS[entity];
+  const router = useRouter();
 
-  /** null means "no explicit pick yet" — the first row stands in for it. */
-  const [selectedId, setSelectedId] = useState<string | null>(null);
   const [sortAsc, setSortAsc] = useState(false);
 
   const displayed = useMemo(() => {
@@ -72,6 +93,8 @@ export function ClientDirectory({ entity, clients, loading }: ClientDirectoryPro
     return [...clients].sort((a, b) => a.username.localeCompare(b.username));
   }, [clients, sortAsc]);
 
+  // Selection lives in the URL, so it is linkable and survives a reload. With
+  // no id (plain /clients) the first row stands in, as it did before.
   const selected =
     displayed.find((client) => client.id === selectedId) ?? displayed[0] ?? null;
 
@@ -203,14 +226,17 @@ export function ClientDirectory({ entity, clients, loading }: ClientDirectoryPro
               <button
                 key={client.id}
                 type="button"
-                onClick={() => setSelectedId(client.id)}
+                onClick={() => router.push(`/clients/${encodeURIComponent(client.id)}`)}
+                aria-current={selected?.id === client.id ? "true" : undefined}
                 className={
                   "mb-px flex w-full cursor-pointer items-center rounded-md border-0 bg-transparent px-3 py-2.5 text-left transition-[background] duration-0 hover:bg-accent/10 " +
                   // `.user-list-item` dark: hover #006bbd1a; selected
                   // hsl(206 100% 37% / .2), which *lightens* to /.1 on hover.
                   "dark:hover:bg-[#006bbd1a] " +
                   (selected?.id === client.id
-                    ? "bg-accent/20 dark:bg-[hsl(206_100%_37%_/_0.2)] dark:hover:bg-[hsl(206_100%_37%_/_0.1)]"
+                    ? "bg-accent/25 dark:bg-[hsl(206_100%_37%_/_0.25)] " +
+                      "dark:hover:bg-[hsl(206_100%_37%_/_0.2)] " +
+                      SELECTED_MARKER
                     : "")
                 }
               >
