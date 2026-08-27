@@ -1,7 +1,5 @@
 "use client";
 
-import { useRouter } from "next/navigation";
-
 import { useAuth } from "@/components/auth/AuthProvider";
 import { useTheme } from "@/lib/theme";
 import { useQuickCreate } from "@/components/quick-create/QuickCreateProvider";
@@ -33,24 +31,6 @@ export function RightRail() {
   const { isDark, toggleTheme } = useTheme();
   const quickCreate = useQuickCreate();
   const { user, logout } = useAuth();
-  const router = useRouter();
-
-  /**
-   * A rail button both moves you to the page the action belongs to and opens
-   * the form, so the URL says what you are doing — the address bar used to sit
-   * on whatever page you happened to be on while a create modal was open, which
-   * meant the state could not be linked or reloaded.
-   *
-   * Create User needs no modal: /create/user *is* the user form.
-   */
-  const startCreate = (kind: "user" | "deposit" | "withdrawal") => {
-    if (kind === "user") {
-      router.push("/create/user");
-      return;
-    }
-    router.push(kind === "deposit" ? "/deposits" : "/withdrawals");
-    quickCreate.open(kind);
-  };
 
   // `h-screen` so the account block at the bottom can sit on `mt-auto`.
   return (
@@ -62,7 +42,7 @@ export function RightRail() {
       <button
         type="button"
         className={RAIL_BUTTON}
-        onClick={() => startCreate("user")}
+        onClick={() => quickCreate.open("user")}
         title="Create User"
         aria-label="Create User"
       >
@@ -72,7 +52,7 @@ export function RightRail() {
       <button
         type="button"
         className={RAIL_BUTTON}
-        onClick={() => startCreate("deposit")}
+        onClick={() => quickCreate.open("deposit")}
         title="Create Deposit"
         aria-label="Create Deposit"
       >
@@ -81,7 +61,7 @@ export function RightRail() {
       <button
         type="button"
         className={RAIL_BUTTON}
-        onClick={() => startCreate("withdrawal")}
+        onClick={() => quickCreate.open("withdrawal")}
         title="Create Withdrawal"
         aria-label="Create Withdrawal"
       >
