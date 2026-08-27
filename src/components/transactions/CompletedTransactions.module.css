@@ -1,0 +1,79 @@
+/* Tokens mirror WorkingDw.module.css so the two operations screens read as one
+   surface. Declared on .page because the header row is portaled out of this
+   subtree and would otherwise lose them. */
+.page {
+  --ct-headings: #214055;
+  --ct-muted: #6a95b9;
+  --ct-border: hsl(202 70% 81%);
+  --ct-hairline: rgba(33, 64, 85, 0.08);
+  --ct-row-hover: rgba(255, 255, 255, 0.45);
+  --ct-search-bg: rgba(255, 255, 255, 0.55);
+  --ct-search-border: rgba(255, 255, 255, 0.9);
+}
+
+:global(.dark) .page {
+  --ct-headings: hsl(207 100% 87%);
+  --ct-muted: #4e8dc1;
+  --ct-border: #0062ad;
+  --ct-hairline: rgba(0, 145, 255, 0.15);
+  --ct-row-hover: rgba(0, 107, 189, 0.1);
+  --ct-search-bg: rgba(0, 145, 255, 0.08);
+  --ct-search-border: rgba(0, 98, 198, 0.5);
+}
+
+.search input {
+  width: 100%;
+  height: 38px;
+  padding: 0 2.25rem 0 2.5rem;
+  border-radius: 999px;
+  border: 1px solid var(--ct-search-border);
+  background: var(--ct-search-bg);
+  color: var(--ct-headings);
+  font-size: 13.5px;
+  outline: none;
+  transition: border-color 200ms, background 200ms;
+}
+
+.search input::placeholder {
+  color: var(--ct-muted);
+}
+
+.search input:focus {
+  border-color: var(--ct-search-border);
+  background: var(--ct-search-bg);
+}
+
+.search input::-webkit-search-cancel-button {
+  -webkit-appearance: none;
+  appearance: none;
+}
+
+/* The table scrolls inside its own box; the page never scrolls sideways. */
+.tableWrap {
+  overflow-x: auto;
+}
+
+.table th {
+  position: sticky;
+  top: 0;
+  z-index: 1;
+  padding: 0.6rem 0.75rem;
+  text-align: left;
+  font-weight: 500;
+  white-space: nowrap;
+  color: var(--ct-muted);
+  background: var(--ct-search-bg);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  border-bottom: 1px solid var(--ct-border);
+}
+
+.table td {
+  padding: 0.55rem 0.75rem;
+  color: var(--ct-headings);
+  border-bottom: 1px solid var(--ct-hairline);
+}
+
+.table tbody tr:hover td {
+  background: var(--ct-row-hover);
+}
