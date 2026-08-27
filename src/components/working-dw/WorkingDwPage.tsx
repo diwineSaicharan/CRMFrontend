@@ -13,7 +13,7 @@ import {
   type DwTab,
 } from "@/lib/working-dw";
 import { HeaderSlot } from "@/components/layout/HeaderSlot";
-import { DwActionMenu } from "./DwActionMenu";
+import { DwStageCell } from "./DwActionMenu";
 import { DW_HERO_MASK, DW_TABLE_MASK } from "./icon-masks";
 import styles from "./WorkingDw.module.css";
 
@@ -34,6 +34,15 @@ const STAGE_INK = "text-[#214055] dark:text-[#BDE1FF]";
 const STAGE_ACTION =
   "cursor-pointer transition-colors hover:bg-[#A3C1C0] dark:hover:bg-[#0E4A80]";
 const STAGE_LOCKED = "cursor-not-allowed opacity-60";
+const STAGE_DONE =
+  "border-[#0e7c5a] bg-[#00a87826] text-[#00845e] dark:border-[#34a853] dark:text-[#4ade80]";
+
+const STAGE_CLASSES = {
+  pill: STAGE_PILL + " " + STAGE_INK,
+  locked: STAGE_LOCKED,
+  action: STAGE_ACTION,
+  done: STAGE_DONE,
+};
 
 function MaskIcon({
   mask,
@@ -402,59 +411,28 @@ export function WorkingDwPage({ tab }: { tab: DwTab }) {
                         </td>
                         <td className={styles.colBy}>{request.requestedBy || "—"}</td>
 
+                        {/* Both cells decide their own state and label — see
+                            DwStageCell. The admin stage is a root ("dummy")
+                            request's second sign-off; a normal request is
+                            settled by the banker's verify and shows a dash. */}
                         <td className={styles.colBanker}>
-                          <DwActionMenu
+                          <DwStageCell
                             stage="banker"
                             request={request}
                             tab={mainTab}
                             onDone={refresh}
-                            pillClassName={STAGE_PILL + " " + STAGE_INK}
-                            lockedClassName={STAGE_LOCKED}
-                            actionClassName={STAGE_ACTION}
-                          >
-                            <span>
-                              {request.status === "PROCESSING" ? "Processing" : "Pending"}
-                            </span>
-                            <span
-                              aria-hidden="true"
-                              className="material-icons text-[17px] leading-none opacity-60"
-                            >
-                              expand_more
-                            </span>
-                          </DwActionMenu>
+                            classes={STAGE_CLASSES}
+                          />
                         </td>
 
-                        {/* Admin sign-off is a root ("dummy") request's second
-                            stage. A normal request is settled by the banker's
-                            approve, so it shows a dash — same as diwine_admin. */}
                         <td className={styles.colAdmin}>
-                          {request.isDummyRequest ? (
-                            <DwActionMenu
-                              stage="admin"
-                              request={request}
-                              tab={mainTab}
-                              onDone={refresh}
-                              pillClassName={STAGE_PILL + " " + STAGE_INK}
-                              lockedClassName={STAGE_LOCKED}
-                              actionClassName={STAGE_ACTION}
-                            >
-                              <span>
-                                {request.adminApprovalStatus === "APPROVED"
-                                  ? "Approved"
-                                  : "Pending"}
-                              </span>
-                              <span
-                                aria-hidden="true"
-                                className="material-icons text-[17px] leading-none opacity-60"
-                              >
-                                expand_more
-                              </span>
-                            </DwActionMenu>
-                          ) : (
-                            <span className="text-[12px] text-[#9BB4C7] dark:text-[#4E8DC1]">
-                              —
-                            </span>
-                          )}
+                          <DwStageCell
+                            stage="admin"
+                            request={request}
+                            tab={mainTab}
+                            onDone={refresh}
+                            classes={STAGE_CLASSES}
+                          />
                         </td>
                       </tr>
                     ))}

@@ -21,6 +21,12 @@ export interface DwRequest {
   createdAt?: string;
   requestedBy?: string | null;
   status?: string;
+  /** A legacy lien shows as closing < opening — the banker stage reads this to
+   *  tell an already-debited withdrawal from one still waiting to be processed. */
+  openingBalance?: number | null;
+  closingBalance?: number | null;
+  /** DEPOSIT | WITHDRAWAL, as stored on the row. */
+  type?: string;
   assignedToUserId?: string | null;
   assignedToUserName?: string | null;
   verifiedBy?: string | null;
