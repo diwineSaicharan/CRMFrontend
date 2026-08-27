@@ -1,11 +1,13 @@
 "use client";
 
 import { useEffect, useMemo, useRef, useState } from "react";
+import { createPortal } from "react-dom";
 
 import { dwApi, type OperationBank } from "@/lib/deposit-withdrawal";
 import {
   formatDwDate,
   formatRupees,
+  getRequestedByLabel,
   getSourceLabel,
   type DwRequest,
 } from "@/lib/working-dw";
@@ -210,7 +212,24 @@ export function DwVerifyModal({
     });
   };
 
-  return (
+  /*
+   * Rendered into <body>, not where it sits in the tree.
+   *
+   * This dialog is mounted from a cell of the queue table, and the queue's
+   * fade-up animation puts a `transform` on an ancestor — which makes that
+   * ancestor the containing block for `position: fixed`. The overlay's inset-0
+   * then resolved against the table wrapper rather than the viewport, so the
+   * dialog sat off to one side and the dim did not cover the page. A portal
+   * takes it out of that subtree for good, rather than leaving the centring at
+   * the mercy of whatever CSS lands on an ancestor later.
+   *
+   * Guarded because document does not exist during the server render. This
+   * cannot mismatch on hydration: the dialog only mounts from a click, so it
+   * is never part of the server-rendered markup.
+   */
+  if (typeof document === "undefined") return null;
+
+  return createPortal(
     <div
       className="fixed inset-0 z-[1200] grid place-items-center bg-black/45 p-4 backdrop-blur-[2px]"
       role="dialog"
@@ -276,7 +295,7 @@ export function DwVerifyModal({
             <Detail label="IFSC / UPI" value={request.bankIfsc || "—"} />
             <Detail label="UTR" value={request.utrNumber || "—"} mono />
             <Detail label="Created" value={formatDwDate(request.createdAt)} />
-            <Detail label="Created By" value={request.requestedBy || "—"} />
+            <Detail label="Created By" value={getRequestedByLabel(request)} />
           </div>
 
           {/* Existing receipt, for either kind. */}
@@ -437,6 +456,7 @@ export function DwVerifyModal({
           </button>
         </div>
       </div>
-    </div>
+    </div>,
+    document.body,
   );
 }

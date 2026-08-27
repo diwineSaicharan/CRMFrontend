@@ -6,6 +6,7 @@ import { useSearchParams } from "next/navigation";
 import {
   formatDwDate,
   formatRupees,
+  getRequestedByLabel,
   getSourceLabel,
   workingDwApi,
   type DwPendingCounts,
@@ -402,7 +403,7 @@ export function WorkingDwPage({ tab }: { tab: DwTab }) {
                         <td className={styles.colCreated}>
                           {formatDwDate(request.createdAt)}
                         </td>
-                        <td className={styles.colBy}>{request.requestedBy || "—"}</td>
+                        <td className={styles.colBy}>{getRequestedByLabel(request)}</td>
 
                         {/* Both cells decide their own state and label — see
                             DwStageCell. The admin stage is a root ("dummy")

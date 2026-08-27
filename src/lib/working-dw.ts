@@ -19,7 +19,11 @@ export interface DwRequest {
   utrNumber?: string | null;
   receiptUrl?: string | null;
   createdAt?: string;
+  /** The creator's id, as stored. Not shown — see `getRequestedByLabel`. */
   requestedBy?: string | null;
+  /** Resolved from that id by the queue query. */
+  requestedByName?: string | null;
+  requestedByRole?: string | null;
   status?: string;
   /** A legacy lien shows as closing < opening — the banker stage reads this to
    *  tell an already-debited withdrawal from one still waiting to be processed. */
@@ -76,6 +80,38 @@ export const workingDwApi = {
   process: (requestId: string, body: Record<string, unknown> = {}) =>
     api.put<ApiResponse<DwRequest>>(`${BASE}/${requestId}/process`, body),
 };
+
+/**
+ * Who raised the request, as the admin panel words it.
+ *
+ * The row carries `created_by`, an id, which is what the By column and the
+ * modal's Created By used to print — a cuid tells a banker nothing about who
+ * they are approving for. The queue query resolves it, and this reproduces
+ * diwine_admin_ui's `getRequestedBy` so both panels read identically.
+ */
+const CREATOR_ROLE_LABELS: Record<string, string> = {
+  ADMIN: "Admin",
+  DL: "DL",
+  SUPER: "Super",
+  MASTER: "Master",
+};
+
+export function getRequestedByLabel(request: DwRequest): string {
+  // A self-service request was raised by the player on their own account, so
+  // the creator is the player and the panel says so explicitly.
+  if (request.sourceType === "SELF") {
+    return `${request.username || "Player"} (Self)`;
+  }
+
+  const username = request.requestedByName;
+  // An id that resolves to nobody — a deleted creator, or a row written by a
+  // job rather than a person.
+  if (!username) return "System";
+
+  const roleLabel =
+    CREATOR_ROLE_LABELS[String(request.requestedByRole ?? "").toUpperCase()];
+  return roleLabel ? `${username} (${roleLabel})` : username;
+}
 
 export function getSourceLabel(sourceType?: string | null): string {
   if (!sourceType) return "—";
