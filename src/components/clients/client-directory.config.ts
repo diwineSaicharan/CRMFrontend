@@ -16,36 +16,6 @@ export const CLIENT_DIRECTORY_CONFIGS: Record<
   ClientEntityKey,
   ClientDirectoryEntityConfig
 > = {
-  dl: {
-    key: "dl",
-    listTitle: "DL List",
-    createLabel: "Create New DL",
-    noDataMessage: "No DL data found matching your search",
-    showJoinedDate: true,
-    showBonus: false,
-    showPhone: false,
-    showBulkUpload: false,
-  },
-  super: {
-    key: "super",
-    listTitle: "Super List",
-    createLabel: "Create New Super",
-    noDataMessage: "No Super Master data found matching your search",
-    showJoinedDate: false,
-    showBonus: false,
-    showPhone: false,
-    showBulkUpload: false,
-  },
-  master: {
-    key: "master",
-    listTitle: "Master List",
-    createLabel: "Create New Master",
-    noDataMessage: "No Master data found matching your search",
-    showJoinedDate: false,
-    showBonus: false,
-    showPhone: false,
-    showBulkUpload: false,
-  },
   users: {
     key: "users",
     listTitle: "User List",
@@ -56,16 +26,6 @@ export const CLIENT_DIRECTORY_CONFIGS: Record<
     showPhone: true,
     showBulkUpload: true,
   },
-  teammates: {
-    key: "teammates",
-    listTitle: "TeamMate List",
-    createLabel: "Create New TeamMate",
-    noDataMessage: "No TeamMate data found matching your search",
-    showJoinedDate: true,
-    showBonus: false,
-    showPhone: true,
-    showBulkUpload: false,
-  },
 };
 
 /**
@@ -73,9 +33,8 @@ export const CLIENT_DIRECTORY_CONFIGS: Record<
  * are inlined in components/ui/icons.tsx (CLIENT_NAV_ICONS) rather than named
  * here, so they take `currentColor` instead of needing a recolour filter.
  *
- * The CRM directory only surfaces end users. The other rungs keep their entry
- * in CLIENT_DIRECTORY_CONFIGS so the route can still resolve a config, but
- * they are not navigable and `/clients/<other>` redirects to `/clients/users`.
+ * The CRM directory only surfaces end users, so this is a single entry and
+ * /clients is a static route — there is no rung to switch to.
  */
 export const CLIENT_NAV_OPTIONS: Array<{
   value: ClientEntityKey;

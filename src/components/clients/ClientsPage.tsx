@@ -3,18 +3,13 @@
 import { useEffect, useState } from "react";
 
 import { fetchClients, type Client, type ClientEntityKey } from "@/lib/clients";
-import { SAMPLE_CLIENTS } from "@/lib/sample-data";
 import { CLIENT_DIRECTORY_CONFIGS } from "./client-directory.config";
 import { HeaderSlot } from "@/components/layout/HeaderSlot";
 import { ClientDirectory } from "./ClientDirectory";
 import styles from "./ClientDirectory.module.css";
 
 const SEARCH_LABEL: Record<ClientEntityKey, string> = {
-  dl: "DL",
-  super: "Super",
-  master: "Master",
   users: "Client",
-  teammates: "TeamMate",
 };
 
 const PARENT_ROLES = [
@@ -36,12 +31,13 @@ export function ClientsPage({ entity }: { entity: ClientEntityKey }) {
     fetchClients(entity)
       .then((res) => {
         if (cancelled) return;
-        setClients(res.items.length > 0 ? res.items : SAMPLE_CLIENTS);
+        setClients(res.items);
       })
-      // Until CRMBackend serves this route, fall back to placeholder rows so
-      // the layout is reviewable rather than blank.
+      // An empty directory is a real answer. This used to fall back to
+      // placeholder rows while the backend lacked the route; it serves
+      // /end-users now, so inventing clients would only hide a failure.
       .catch(() => {
-        if (!cancelled) setClients(SAMPLE_CLIENTS);
+        if (!cancelled) setClients([]);
       })
       .finally(() => {
         if (!cancelled) setLoading(false);

@@ -96,7 +96,7 @@ export function ClientDirectory({ entity, clients, loading }: ClientDirectoryPro
                     return (
                       <li key={option.value}>
                         <Link
-                          href={`/clients/${option.value}`}
+                          href="/clients"
                           className={
                             NAV_ITEM +
                             (entity === option.value ? " " + NAV_ITEM_ACTIVE : "")

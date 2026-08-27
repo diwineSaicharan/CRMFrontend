@@ -30,7 +30,7 @@ export function LoginForm() {
 
   // Someone who is already signed in has no business on this screen.
   useEffect(() => {
-    if (status === "authenticated") router.replace("/clients/users");
+    if (status === "authenticated") router.replace("/clients");
   }, [status, router]);
 
   const showError = (message: string) => {
@@ -58,7 +58,7 @@ export function LoginForm() {
 
     try {
       await login(trimmed, password);
-      router.replace("/clients/users");
+      router.replace("/clients");
     } catch (error) {
       setIsLoading(false);
       showError(resolveLoginError(error));

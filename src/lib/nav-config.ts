@@ -19,7 +19,7 @@ export interface NavItem {
   href?: string;
   /**
    * Path prefix that keeps the row highlighted. `href` points at one default
-   * page (`/clients/users`), but the row stays active across the whole section
+   * page (`/clients`), but the row stays active across the whole section
    * — the Angular sidebar keys this off `activeSection`, not the exact route.
    */
   activePrefix?: string;
@@ -76,14 +76,14 @@ export const NAV_SECTIONS: NavSection[] = [
         id: "clients",
         label: "Clients",
         icon: "contact",
-        href: "/clients/users",
+        href: "/clients",
         activePrefix: "/clients",
       },
       {
         id: "create",
         label: "Create",
         icon: "kanban-square",
-        href: "/create/user",
+        href: "/create",
         activePrefix: "/create",
       },
     ],

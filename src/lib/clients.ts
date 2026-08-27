@@ -1,6 +1,12 @@
 import { api, type ApiResponse } from "@/lib/api";
 
-export type ClientEntityKey = "dl" | "super" | "master" | "users" | "teammates";
+/**
+ * The CRM directory lists end users and nothing else. DL, Super, Master,
+ * TeamMate, Platform and Party belong to diwine_admin. Keeping this a
+ * single-member union means any stray reference to another rung is a compile
+ * error rather than dead code that quietly still resolves.
+ */
+export type ClientEntityKey = "users";
 
 /** Rows fetched per page — CLIENT_DIRECTORY_PAGE_SIZE in the Angular app. */
 export const CLIENT_DIRECTORY_PAGE_SIZE = 25;
@@ -63,11 +69,7 @@ export interface Client {
 
 /** Endpoint per entity, matching routes/index.ts mounts in diwine_admin. */
 const LIST_ENDPOINT: Record<ClientEntityKey, string> = {
-  dl: "/dl-users",
-  super: "/super-masters",
-  master: "/masters",
   users: "/end-users",
-  teammates: "/admin/teammates",
 };
 
 export interface ClientListResponse {
