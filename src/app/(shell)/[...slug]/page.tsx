@@ -49,6 +49,18 @@ export default async function ShellRoute({ params }: PageProps<"/[...slug]">) {
     case "transactions":
       return <CompletedTransactionsPage />;
 
+    // The quick-create forms. QuickCreateProvider reads the path and shows the
+    // sheet; these render what sits behind it, so a reload or a shared link
+    // lands on a real page with the form open rather than on a 404.
+    case "create-deposit":
+      return <WorkingDwPage tab="deposit" />;
+
+    case "create-withdrawal":
+      return <WorkingDwPage tab="withdrawal" />;
+
+    case "create-user":
+      return <ClientsPage entity="users" />;
+
     // The combined page that was split into /deposits and /withdrawals.
     case "working-deposit-withdrawal":
       redirect("/deposits");
