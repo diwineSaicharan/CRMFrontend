@@ -5,6 +5,7 @@ import { useEffect, useState } from "react";
 import { fetchClients, type Client, type ClientEntityKey } from "@/lib/clients";
 import { SAMPLE_CLIENTS } from "@/lib/sample-data";
 import { CLIENT_DIRECTORY_CONFIGS } from "./client-directory.config";
+import { HeaderSlot } from "@/components/layout/HeaderSlot";
 import { ClientDirectory } from "./ClientDirectory";
 import styles from "./ClientDirectory.module.css";
 
@@ -64,11 +65,12 @@ export function ClientsPage({ entity }: { entity: ClientEntityKey }) {
   return (
     <div className="flex min-h-0 w-full min-w-0 flex-1 flex-col overflow-hidden">
       {/* ── toolbar ──────────────────────────────────────────────────────── */}
-      {/* Above 1440px the reference tightens the toolbar to `padding: 0 0 0.6rem`
-          and indents the heading by 0.7rem. */}
-      <div className="min-w-0 shrink-0 pb-3 min-[1440px]:pb-[0.6rem]">
-        <div className="mt-1 flex w-full min-w-0 items-center gap-5">
-          <h2 className="m-0 shrink-0 font-condensed text-[15px] leading-none font-medium whitespace-nowrap text-headings min-[1440px]:pl-[0.7rem] dark:text-[#bde1ff]">
+      {/* Rendered into the shell header so it shares the row with the global
+          Deposit / Withdrawal switch. It used to sit here in the page body,
+          which put the search bar on a second line underneath that switch. */}
+      <HeaderSlot>
+        <div className="flex w-full min-w-0 items-center gap-5 min-[1440px]:pl-[0.7rem]">
+          <h2 className="m-0 shrink-0 font-condensed text-[15px] leading-none font-medium whitespace-nowrap text-headings dark:text-[#bde1ff]">
             {SEARCH_LABEL[entity]}
           </h2>
 
@@ -128,7 +130,7 @@ export function ClientsPage({ entity }: { entity: ClientEntityKey }) {
             </div>
           )}
         </div>
-      </div>
+      </HeaderSlot>
 
       {/* ── directory ─────────────────────────────────────────────────────
           `app-client-list`'s own `:host` carries `padding: 1px` on top of the

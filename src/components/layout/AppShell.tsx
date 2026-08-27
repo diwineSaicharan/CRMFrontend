@@ -9,6 +9,7 @@ import {
   useQuickCreate,
 } from "@/components/quick-create/QuickCreateProvider";
 import { DwTabSwitch } from "./DwTabSwitch";
+import { HeaderSlotProvider } from "./HeaderSlot";
 import { RightRail } from "./RightRail";
 import { Sidebar } from "./Sidebar";
 import { sidebarModeForPath, type UserRole } from "@/lib/nav-config";
@@ -82,12 +83,23 @@ function ShellChrome({ children, userRole }: AppShellProps) {
       >
         {/* Global header. The Deposit / Withdrawal switch belongs to the app,
             not to the Working D/W page — from any route it takes you to the
-            queue you picked. `flex-none` so it never eats the workspace. */}
-        <header className="flex flex-none items-center justify-end gap-2.5 px-3 pb-2">
-          <DwTabSwitch />
-        </header>
+            queue you picked. `flex-none` so it never eats the workspace.
 
-        {children}
+            The left half is a slot a page fills with its own toolbar (see
+            HeaderSlot), so a page's controls share this row instead of
+            stacking a second band underneath it. */}
+        <HeaderSlotProvider>
+          {(setSlot) => (
+            <>
+              <header className="flex flex-none items-center gap-2.5 px-3 pb-2">
+                <div ref={setSlot} className="flex min-w-0 flex-1 items-center" />
+                <DwTabSwitch />
+              </header>
+
+              {children}
+            </>
+          )}
+        </HeaderSlotProvider>
       </main>
 
       <RightRail />
