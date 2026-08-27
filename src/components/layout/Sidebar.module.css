@@ -1,0 +1,56 @@
+/*
+  Ported from sidebar.component.scss — the `--sidebar-popover-*` token block and
+  `.sidebar.collapsible-rail:hover`.
+
+  This is a real translucent glass panel: a 25% wash over `backdrop-filter:
+  blur(16px)`. An earlier version painted the theme artwork into the sidebar
+  instead, which read as a flat, washed-out slab because the page behind was
+  never actually blurred.
+*/
+
+.sidebar {
+  /* light */
+  --sidebar-popover-surface: rgba(255, 255, 255, 0.25);
+  --sidebar-popover-border: rgba(255, 255, 255, 0.7);
+  --sidebar-popover-shadow:
+    0 10px 15px -3px rgba(15, 23, 42, 0.1), 0 4px 6px -4px rgba(15, 23, 42, 0.1);
+  /* The blur (`--sidebar-popover-blur: blur(16px)`) is applied as Tailwind's
+     `backdrop-blur-[16px]` on the element. Declaring `backdrop-filter` here got
+     minified down to the -webkit- form alone, which leaves non-WebKit engines
+     with no blur at all — and an unblurred 25% wash is precisely the flat,
+     washed-out panel this is meant to avoid. */
+
+  /* `width var(--sidebar-width-transition)` etc., verbatim. */
+  --sidebar-width-duration: 520ms;
+  --sidebar-width-ease: cubic-bezier(0.22, 1, 0.36, 1);
+  --sidebar-width-transition: var(--sidebar-width-duration) var(--sidebar-width-ease);
+  --sidebar-content-transition: 360ms cubic-bezier(0.22, 1, 0.36, 1);
+
+  will-change: width;
+  transition:
+    width var(--sidebar-width-transition),
+    min-width var(--sidebar-width-transition),
+    max-width var(--sidebar-width-transition),
+    padding var(--sidebar-width-transition),
+    background var(--sidebar-width-transition),
+    backdrop-filter var(--sidebar-content-transition),
+    border-color var(--sidebar-content-transition),
+    box-shadow var(--sidebar-content-transition);
+}
+
+:global(.dark) .sidebar {
+  /* `:host-context(.admin-dark-mode) .sidebar` overrides the same three tokens,
+     then `&.collapsible-rail:hover` replaces the surface again with #00468040 —
+     and hovering is exactly the state this panel appears in. */
+  --sidebar-popover-surface: #00468040;
+  --sidebar-popover-border: rgba(3, 152, 255, 0.16);
+  --sidebar-popover-shadow:
+    0 10px 15px -3px rgba(0, 0, 0, 0.24), 0 4px 6px -4px rgba(0, 0, 0, 0.22);
+}
+
+/* Expanded over the page (rail mode, hovered). */
+.railExpanded {
+  background: var(--sidebar-popover-surface);
+  border-right: 1px solid var(--sidebar-popover-border);
+  box-shadow: var(--sidebar-popover-shadow);
+}

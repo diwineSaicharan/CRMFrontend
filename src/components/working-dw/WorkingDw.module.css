@@ -1,0 +1,298 @@
+/* Ported from deposit-withdrawal.component.scss. The token block and the table
+   geometry live here because they are custom properties and table-element rules
+   Tailwind utilities cannot state; everything else is in the template. */
+
+.page {
+  --dw-headings: #214055;
+  --dw-text: #1d4268;
+  --dw-muted: #6a95b9;
+  --dw-sec: #085a86;
+
+  --dw-card: hsla(0, 0%, 100%, 0.55);
+  --dw-card-emphasis: hsla(0, 0%, 100%, 0.8);
+  --dw-surface: #ffffff;
+
+  --dw-border: hsl(202 70% 81%);
+  --dw-border-soft: hsl(202 70% 81% / 0.45);
+  --dw-hairline: rgba(33, 64, 85, 0.08);
+
+  --dw-accent: hsl(187 30% 54%);
+  --dw-accent-tint: hsl(187 30% 54% / 0.1);
+  --dw-accent-tint-strong: hsl(187 30% 54% / 0.2);
+  --dw-ring: rgba(103, 165, 173, 0.102);
+
+  --dw-danger: #ff3b30;
+  --dw-danger-ink: #b91c1c;
+  --dw-positive: #00a878;
+  --dw-positive-line: #10b981;
+
+  --dw-search-border: rgba(255, 255, 255, 0.6);
+  --dw-search-bg: rgba(255, 255, 255, 0.2);
+  --dw-search-border-focus: rgba(255, 255, 255, 0.9);
+  --dw-search-ring: rgba(255, 255, 255, 0.2);
+}
+
+:global(.dark) .page {
+  --dw-headings: hsl(207 100% 87%);
+  --dw-text: hsl(207 100% 81%);
+  --dw-muted: #4e8dc1;
+  --dw-sec: #9ed4ff;
+
+  --dw-card: rgba(0, 145, 255, 0.102);
+  --dw-card-emphasis: rgba(0, 145, 255, 0.2);
+  --dw-surface: #062a49;
+
+  --dw-border: hsl(206 100% 34%);
+  --dw-border-soft: hsl(206 100% 34% / 0.55);
+  --dw-hairline: rgba(255, 255, 255, 0.08);
+
+  --dw-accent: hsl(206 100% 37%);
+  --dw-accent-tint: rgba(0, 145, 255, 0.1);
+  --dw-accent-tint-strong: rgba(0, 145, 255, 0.2);
+  --dw-ring: rgba(0, 145, 255, 0.05);
+
+  --dw-danger: #ff6b64;
+  --dw-danger-ink: #ff8f8f;
+  --dw-positive: #10d49a;
+  --dw-positive-line: #10d49a;
+
+  --dw-search-border: hsl(206 100% 34% / 0.4);
+  --dw-search-bg: rgba(0, 145, 255, 0.05);
+  --dw-search-border-focus: hsl(206 100% 34% / 0.75);
+  --dw-search-ring: rgba(0, 145, 255, 0.1);
+}
+
+/* Top bar fills the 64px band linear-next puts above content-body, less
+   whatever the workspace already contributes as padding. */
+.topbar {
+  height: calc(64px - var(--shell-content-top-padding, 10px));
+}
+
+/* Re-mounted on every tab change (keyed by the tab), so the queue fades up
+   instead of snapping between two different column sets. */
+.queueSwap {
+  animation: dwSwap 260ms cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+
+@keyframes dwSwap {
+  from {
+    opacity: 0;
+    transform: translateY(6px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .tabIndicator {
+    transition: none;
+  }
+
+  .queueSwap {
+    animation: none;
+  }
+}
+
+.search input {
+  box-sizing: border-box;
+  width: 100%;
+  height: 40px;
+  padding: 0 40px;
+  border: 1px solid var(--dw-search-border);
+  border-radius: 999px;
+  background: var(--dw-search-bg);
+  color: var(--dw-text);
+  font: inherit;
+  font-size: 14px;
+  transition:
+    border-color 0.18s ease,
+    box-shadow 0.18s ease;
+}
+
+.search input::placeholder {
+  color: var(--dw-muted);
+}
+
+.search input:focus {
+  outline: none;
+  border-color: var(--dw-search-border-focus);
+  box-shadow: 0 0 0 3px var(--dw-search-ring);
+}
+
+/* The UA clear button would sit under ours and duplicate it. */
+.search input::-webkit-search-cancel-button {
+  -webkit-appearance: none;
+  appearance: none;
+}
+
+/* Shell lands content-body's 1px ring on the reference pixel; the workspace
+   already supplies part of each inset, so only the remainder is added. */
+.shell {
+  margin-right: calc(4.5rem - var(--shell-rail-width, 4.25rem));
+  margin-bottom: calc(0.75rem - var(--shell-content-bottom-padding, 10px));
+  box-sizing: border-box;
+}
+
+/* ── table ───────────────────────────────────────────────────────────────── */
+
+.table {
+  width: max-content;
+  min-width: 100%;
+  border-collapse: separate;
+  border-spacing: 0;
+  background: transparent;
+}
+
+.table thead tr {
+  height: 38px;
+}
+
+.table th {
+  padding: 0 14px;
+  border: none;
+  background: transparent;
+  color: var(--dw-muted);
+  font-size: 12px;
+  font-weight: 600;
+  letter-spacing: 0.1em;
+  line-height: 1;
+  text-align: left;
+  text-transform: uppercase;
+  white-space: nowrap;
+}
+
+.table tbody tr {
+  height: 44px;
+  transition: background 0.15s ease;
+}
+
+/* Zebra keys off the record index, not :nth-child — an open picker adds a
+   second <tr> per record, which would otherwise invert every stripe below. */
+.table tbody tr.rowAlt {
+  background: var(--dw-accent-tint);
+}
+
+.table tbody td:first-child {
+  border-top-left-radius: 6px;
+  border-bottom-left-radius: 6px;
+}
+
+.table tbody td:last-child {
+  border-top-right-radius: 6px;
+  border-bottom-right-radius: 6px;
+}
+
+.table td {
+  padding: 5px 14px;
+  border: none;
+  color: var(--dw-text);
+  font-size: 13px;
+  font-weight: 400;
+  line-height: 1.3;
+  vertical-align: middle;
+  white-space: nowrap;
+}
+
+/* Right gutter for the scroll rail lives on the cells: cell padding is part of
+   the table's max-content width, so it survives however the browser treats
+   trailing padding on a scroll container. */
+.table th:last-child,
+.table td:last-child {
+  padding-right: 26px;
+}
+
+.table .isStrong {
+  color: var(--dw-headings);
+  font-weight: 400;
+}
+
+/* Column rhythm — explicit classes, not nth-child: the withdrawal tab drops
+   Bonus / Total / Receipt, and positional selectors would retarget silently. */
+.table .colAssigned { min-width: 84px; }
+.table .colUser { min-width: 116px; }
+.table .colMaster { min-width: 132px; }
+.table .colPlatform { min-width: 112px; }
+.table .colCategory { min-width: 88px; }
+.table .colSource { min-width: 88px; }
+.table .colAmount { min-width: 132px; }
+.table .colBonus { min-width: 168px; }
+.table .colTotal { min-width: 132px; }
+.table .colBank { min-width: 150px; }
+.table .colUtr { min-width: 128px; }
+.table .colReceipt { min-width: 90px; }
+.table .colCreated { min-width: 156px; }
+.table .colBy { min-width: 160px; }
+.table .colBanker { min-width: 200px; }
+.table .colAdmin { min-width: 186px; }
+
+/* ── capsules ────────────────────────────────────────────────────────────── */
+
+.capsule {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  box-sizing: border-box;
+  min-width: 112px;
+  min-height: 26px;
+  padding: 3px 12px;
+  border: 1px solid var(--dw-border);
+  border-radius: 999px;
+  background: transparent;
+  color: var(--dw-text);
+  font-size: 12.5px;
+  font-weight: 500;
+  line-height: 1;
+  white-space: nowrap;
+  font-variant-numeric: tabular-nums;
+}
+
+.capsuleAmount {
+  border-color: var(--dw-danger);
+  color: var(--dw-danger);
+}
+
+.capsuleTotal {
+  border-color: var(--dw-positive-line);
+  color: var(--dw-positive);
+}
+
+.capsuleUtr {
+  min-width: 104px;
+}
+
+/* ── masked icons ────────────────────────────────────────────────────────────
+   Both glyphs are a solid currentColor block shown through a PNG alpha mask,
+   which is what the inline Angular SVGs do — this way they still follow the
+   theme instead of being baked to one colour. */
+.maskIcon {
+  -webkit-mask-repeat: no-repeat;
+  mask-repeat: no-repeat;
+  -webkit-mask-position: center;
+  mask-position: center;
+  -webkit-mask-size: contain;
+  mask-size: contain;
+  background-color: currentColor;
+}
+
+/* ── scroll rail ─────────────────────────────────────────────────────────── */
+
+/*
+  `.dw-rail-scroll` has no native scrollbar at all. The reference's own note
+  explains why: styling any scrollbar part switches Chrome to its legacy
+  scrollbar, which "reserves a full gutter of layout width" — the rail is a div
+  so it floats over the content instead of taking 8px from it. A real 8px track
+  here narrowed the table pane and pushed its columns out of line.
+*/
+.tableScroll {
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+  overscroll-behavior: contain;
+}
+
+.tableScroll::-webkit-scrollbar {
+  display: none;
+  width: 0;
+  height: 0;
+}

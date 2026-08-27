@@ -1,0 +1,58 @@
+/* Ported from login.component.scss. */
+
+.page {
+  background-color: #f5f5f5;
+  background-image: url("/assets/images/light-theme-background.jpg");
+  background-size: cover;
+  background-position: center;
+  background-repeat: no-repeat;
+}
+
+/* Chrome paints autofilled inputs its own yellow, which fights the field
+   chrome; an oversized inset shadow is the only way to override it. */
+.loginInput:-webkit-autofill,
+.loginInput:-webkit-autofill:hover,
+.loginInput:-webkit-autofill:focus,
+.loginInput:-webkit-autofill:active {
+  -webkit-box-shadow: 0 0 0 30px #ffffff inset !important;
+  -webkit-text-fill-color: #295b83 !important;
+  transition: background-color 5000s ease-in-out 0s;
+}
+
+@keyframes login-shake {
+  0%,
+  100% {
+    transform: translateX(0);
+  }
+  25% {
+    transform: translateX(-4px);
+  }
+  75% {
+    transform: translateX(4px);
+  }
+}
+
+.shake {
+  animation: login-shake 0.4s ease-in-out;
+}
+
+/* The Angular template uses a Font Awesome spinner; the CRM has no icon font,
+   so the button draws its own. */
+.spinner {
+  border: 2px solid rgba(255, 255, 255, 0.35);
+  border-top-color: #ffffff;
+  animation: login-spin 0.6s linear infinite;
+}
+
+@keyframes login-spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .shake,
+  .spinner {
+    animation: none;
+  }
+}

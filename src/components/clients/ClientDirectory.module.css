@@ -1,0 +1,138 @@
+/* Ported from client-directory-shared.scss / client-list.component.scss.
+   Everything expressible as a utility lives in the template; this file holds
+   only what Tailwind cannot state: the overlay scroll rails, the <img> recolour
+   filters, and the field hairline's exact 56px inset. */
+
+/* ── column scroll ───────────────────────────────────────────────────────────
+   The scrollbar takes NO layout width. `client-column-scroll` in the reference
+   is `::-webkit-scrollbar { width: 0px !important; height: 0px !important }`,
+   and the visible thumb is a separate overlay drawn by the
+   ClientColumnScrollHost directive — nothing is subtracted from the column.
+
+   Giving it a real 6px track (as this file first did) narrowed every scrolling
+   pane by 6px, which is what pushed the nav, list and detail columns out of
+   line with the reference. `scrollbar-width: none` keeps non-WebKit engines
+   from reserving a gutter either. */
+.columnScroll {
+  scrollbar-width: none;
+  overscroll-behavior: contain;
+  -webkit-overflow-scrolling: touch;
+}
+
+.columnScroll::-webkit-scrollbar {
+  width: 0 !important;
+  height: 0 !important;
+  background: transparent;
+}
+
+/* ── overlay scrollbar ───────────────────────────────────────────────────────
+   `.client-column-scrollbar-rail` / `-thumb` from styles.scss, driven by
+   ColumnScroll.tsx. The rail is absolutely positioned inside the column's
+   existing wrapper, so it costs no layout width and shifts nothing: it only
+   paints over the last 8px of a column that is already scrolling. */
+.scrollHost {
+  position: relative;
+}
+
+.scrollRail {
+  position: absolute;
+  top: 0;
+  right: 0;
+  bottom: 0;
+  width: 8px;
+  padding: 1px;
+  border-radius: 999px;
+  background-color: transparent;
+  pointer-events: auto;
+  touch-action: none;
+  user-select: none;
+  opacity: 0;
+  /* Fades in at once on hover; the 780ms delay is on the way *out*, so the
+     thumb does not vanish the instant the pointer leaves the column. */
+  transition:
+    opacity 0.16s ease 780ms,
+    background-color 0.2s ease;
+  z-index: 2;
+}
+
+.scrollHost:hover .scrollRail,
+.scrollRail.isDragging {
+  opacity: 1;
+  transition:
+    opacity 0.12s ease,
+    background-color 0.2s ease;
+}
+
+.scrollThumb {
+  position: absolute;
+  top: 0;
+  right: 0;
+  width: 4px;
+  min-height: 32px;
+  border-radius: 999px;
+  background-color: #b2cccb;
+  touch-action: none;
+  user-select: none;
+  transition:
+    background-color 0.2s ease,
+    width 0.2s ease;
+}
+
+.scrollRail:hover .scrollThumb,
+.scrollRail.isDragging .scrollThumb,
+.scrollThumb:hover {
+  width: 6px;
+  background-color: #9fc2c1;
+}
+
+/* Dark thumb from `.admin-dark-mode .client-column-scrollbar-thumb`. */
+:global(.dark) .scrollThumb {
+  background-color: rgba(3, 111, 182, 0.82);
+}
+
+:global(.dark) .scrollRail:hover .scrollThumb,
+:global(.dark) .scrollRail.isDragging .scrollThumb,
+:global(.dark) .scrollThumb:hover {
+  background-color: #0398ff;
+}
+
+/* The nav glyphs used to be <img> recoloured by filter; they are inline SVG in
+   components/ui/icons.tsx now and inherit the row's colour directly. */
+
+/* ── detail field hairline ───────────────────────────────────────────────────
+   Starts past the 36px icon plus its 20px gap, so the rules line up under the
+   text column rather than running the full card width. */
+.fieldRow::after {
+  content: "";
+  position: absolute;
+  right: 0;
+  bottom: 0;
+  left: 56px;
+  height: 1px;
+  background: #e5e7eb;
+}
+
+:global(.dark) .fieldRow::after {
+  background: rgba(158, 212, 255, 0.15);
+}
+
+/* ── search input ────────────────────────────────────────────────────────────
+   A three-layer shadow the utility scale has no equivalent for. */
+.searchShell {
+  box-shadow:
+    0 4px 6px rgba(0, 0, 0, 0.05),
+    0 1px 3px rgba(0, 0, 0, 0.1),
+    inset 0 1px 0 rgba(255, 255, 255, 0.1);
+}
+
+.searchShell:focus-within {
+  box-shadow:
+    0 5px 15px rgba(0, 0, 0, 0.1),
+    0 1px 4px rgba(0, 0, 0, 0.1),
+    inset 0 2px 0 rgba(255, 255, 255, 0.2);
+}
+
+:global(.dark) .searchShell,
+:global(.dark) .searchShell:focus-within {
+  box-shadow: none;
+}

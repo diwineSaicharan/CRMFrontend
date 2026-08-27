@@ -1,0 +1,119 @@
+@import "tailwindcss";
+
+/* Class-based dark mode — the shell toggles `.dark` on <html>, mirroring
+   the Angular admin's `.admin-dark-mode` on .background-container. */
+@custom-variant dark (&:where(.dark, .dark *));
+
+@theme inline {
+  /* diwine_admin_ui sets `--font-family: "Roboto Condensed"` on :root and uses
+     it for <body>, so it is the app-wide face — not just a form accent. */
+  --font-sans: var(--font-roboto-condensed), "Roboto Condensed", sans-serif;
+  --font-condensed: var(--font-roboto-condensed), "Roboto Condensed", sans-serif;
+  --font-mono: ui-monospace, SFMono-Regular, Menlo, monospace;
+
+  /* from diwine_admin_ui/tailwind.config.js — the whole palette, verbatim */
+  --color-accent: hsl(187 30% 54%);
+  --color-headings: #214055;
+  --color-body: hsl(207 54% 33%);
+  --color-heading: #0e5484;
+  --color-muted: #6a95b9;
+  --color-card: hsla(0, 0%, 100%, 0.6);
+  --color-border: hsl(187 30% 54% / 0.3);
+
+  /* Sidebar palette from admin.component.scss / sidebar.component.html */
+  --color-nav-text: #1d4268;
+  --color-nav-text-dark: #b7d8f6;
+  --color-nav-icon: #214055;
+  --color-nav-accent: #05a2a1;
+  --color-nav-accent-dark: #0398ff;
+  --color-nav-section: #6a95b9;
+  --color-nav-section-dark: #4e8dc1;
+}
+
+/* Workspace geometry, matching .background-container's custom properties. */
+:root {
+  --shell-sidebar-width: 240px;
+  --shell-sidebar-minimized-width: 4rem;
+  --shell-rail-width: 4.25rem;
+  --shell-content-top-padding: 10px;
+  --shell-content-bottom-padding: 10px;
+  --shell-content-height: calc(
+    100vh - var(--shell-content-top-padding) 
+  );
+}
+
+/* admin.component.scss redeclares two of these on .background-container above
+   1440px. Missing it left every page sitting 3px low with a slightly narrow
+   right inset — the workspace is the shared origin, so it shifts all of
+   Clients, Create and Working D/W at once. */
+@media screen and (min-width: 1440px) {
+  :root {
+    --shell-rail-width: 4.4rem;
+    --shell-content-top-padding: 7px;
+  }
+}
+
+body {
+  font-family: var(--font-sans);
+  background-color: #f5f5f5;
+  color: #333333;
+}
+
+.dark body {
+  background-color: #061321;
+  color: #b7d8f6;
+}
+
+/* Themed workspace backdrop (fixed, same artwork as the admin panel). */
+.shell-backdrop {
+  background-image: url("/assets/images/light-theme-background.jpg");
+  background-size: cover;
+  background-position: center;
+  background-repeat: no-repeat;
+  background-attachment: fixed;
+}
+
+.dark .shell-backdrop {
+  background-image: url("/assets/images/dark-theme-background.png");
+}
+
+/* Sidebar / main scroll. The scrollbar takes no layout width: the reference
+   drives these panes with an overlay rail and keeps the native bar at zero, so
+   a real track would narrow the pane and shift its content. */
+.shell-scroll {
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+}
+
+.shell-scroll::-webkit-scrollbar {
+  display: none;
+  width: 0;
+  height: 0;
+}
+
+/* Material Icons ligature font, same as diwine_admin_ui/src/index.html.
+   Global because ligature markup appears in nearly every ported component. */
+.material-icons {
+  font-family: "Material Icons", sans-serif;
+  font-weight: normal;
+  font-style: normal;
+  line-height: 1;
+  letter-spacing: normal;
+  text-transform: none;
+  display: inline-block;
+  white-space: nowrap;
+  word-wrap: normal;
+  direction: ltr;
+  font-feature-settings: "liga";
+  -webkit-font-smoothing: antialiased;
+}
+
+/* Icons that are Figma exports wrapping a base64 PNG (assets/action/*.svg and
+   the create-nav glyphs) cannot inherit currentColor, so they are recoloured
+   with a filter — `--admin-dark-icon-filter` from admin.component.scss. The
+   artwork is already tinted #214055, so light mode needs no rule — and no
+   `transition` here either, or it would beat the row-action hover scale. */
+.dark .icon-img {
+  filter: brightness(0) saturate(100%) invert(78%) sepia(48%) saturate(591%)
+    hue-rotate(177deg) brightness(102%) contrast(101%);
+}
