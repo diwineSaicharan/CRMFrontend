@@ -1,6 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useMemo, useState } from "react";
+import { useSearchParams } from "next/navigation";
 
 import {
   formatDwDate,
@@ -56,7 +57,26 @@ function MaskIcon({
 export function WorkingDwPage({ tab }: { tab: DwTab }) {
   // The route decides which queue this is; the header switch navigates.
   const mainTab = tab;
-  const [searchTerm, setSearchTerm] = useState("");
+  /**
+   * The filter lives in the URL (?q=), so a filtered queue is linkable and
+   * survives a reload. Written with replaceState rather than a route push:
+   * typing must not add a history entry per keystroke, and a route change here
+   * would remount the page and refetch the queue on every character.
+   */
+  const searchParams = useSearchParams();
+  const searchTerm = searchParams.get("q") ?? "";
+
+  const setSearchTerm = useCallback((value: string) => {
+    const next = new URLSearchParams(window.location.search);
+    if (value) next.set("q", value);
+    else next.delete("q");
+    const query = next.toString();
+    window.history.replaceState(
+      null,
+      "",
+      query ? `${window.location.pathname}?${query}` : window.location.pathname,
+    );
+  }, []);
   const [loaded, setLoaded] = useState<{ tab: DwTab; rows: DwRequest[] } | null>(null);
   const [counts, setCounts] = useState<DwPendingCounts>({
     pendingDeposits: 0,

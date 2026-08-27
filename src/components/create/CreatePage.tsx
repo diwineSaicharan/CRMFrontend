@@ -63,7 +63,7 @@ export function CreatePage({ entity }: { entity: CreateEntityKey }) {
           {CREATE_NAV_OPTIONS.map((option) => (
             <Link
               key={option.value}
-              href="/create"
+              href={`/create/${option.value}`}
               className={
                 NAV_ITEM + (entity === option.value ? " " + NAV_ITEM_ACTIVE : "")
               }
