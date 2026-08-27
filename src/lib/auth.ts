@@ -6,6 +6,31 @@ import type { UserRole } from "@/lib/nav-config";
  * `/api/auth` routes in diwine_admin. The CRM backend implements the same
  * contract, so this layer is a straight port of AuthService.
  */
+/** The CRM pages an account may reach. See crm-permission.service.ts. */
+export const CRM_CAPABILITIES = [
+  "clients",
+  "create",
+  "deposit",
+  "withdrawal",
+  "transaction",
+] as const;
+
+export type CrmCapability = (typeof CRM_CAPABILITIES)[number];
+
+export interface CrmPermissions extends Record<CrmCapability, boolean> {
+  profileName?: string | null;
+  isActive?: boolean;
+}
+
+/** Everything granted — what an unrestricted role holds. */
+export const FULL_CRM_ACCESS: CrmPermissions = {
+  clients: true,
+  create: true,
+  deposit: true,
+  withdrawal: true,
+  transaction: true,
+};
+
 export interface AuthUser {
   id: string;
   username: string;
@@ -19,6 +44,8 @@ export interface AuthUser {
   commission?: number;
   sharingRatio?: number;
   isActive?: boolean;
+  /** Sent with the profile, so the UI can hide what this account cannot reach. */
+  crmPermissions?: CrmPermissions;
 }
 
 export interface LoginResponse {

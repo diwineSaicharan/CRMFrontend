@@ -30,7 +30,7 @@ const TOOLBAR_SVG = "toolbar-svg h-[22px] w-[22px] shrink-0 text-[#50708d] dark:
 export function RightRail() {
   const { isDark, toggleTheme } = useTheme();
   const quickCreate = useQuickCreate();
-  const { user, logout } = useAuth();
+  const { user, logout, permissions } = useAuth();
 
   // `h-screen` so the account block at the bottom can sit on `mt-auto`.
   return (
@@ -39,34 +39,40 @@ export function RightRail() {
       role="toolbar"
       aria-label="Quick actions"
     >
-      <button
-        type="button"
-        className={RAIL_BUTTON}
-        onClick={() => quickCreate.open("user")}
-        title="Create User"
-        aria-label="Create User"
-      >
-        <CreateUserIcon className={CREATE_ICON} />
-      </button>
+      {permissions.create && (
+        <button
+          type="button"
+          className={RAIL_BUTTON}
+          onClick={() => quickCreate.open("user")}
+          title="Create User"
+          aria-label="Create User"
+        >
+          <CreateUserIcon className={CREATE_ICON} />
+        </button>
+      )}
 
-      <button
-        type="button"
-        className={RAIL_BUTTON}
-        onClick={() => quickCreate.open("deposit")}
-        title="Create Deposit"
-        aria-label="Create Deposit"
-      >
-        <CreateDepositIcon className={CREATE_ICON} />
-      </button>
-      <button
-        type="button"
-        className={RAIL_BUTTON}
-        onClick={() => quickCreate.open("withdrawal")}
-        title="Create Withdrawal"
-        aria-label="Create Withdrawal"
-      >
-        <CreateWithdrawalIcon className={CREATE_ICON} />
-      </button>
+      {permissions.deposit && (
+        <button
+          type="button"
+          className={RAIL_BUTTON}
+          onClick={() => quickCreate.open("deposit")}
+          title="Create Deposit"
+          aria-label="Create Deposit"
+        >
+          <CreateDepositIcon className={CREATE_ICON} />
+        </button>
+      )}
+      {permissions.withdrawal && (
+        <button
+          type="button"
+          className={RAIL_BUTTON}
+          onClick={() => quickCreate.open("withdrawal")}
+          title="Create Withdrawal"
+          aria-label="Create Withdrawal"
+        >
+          <CreateWithdrawalIcon className={CREATE_ICON} />
+        </button>
+      )}
 
       <button
         type="button"

@@ -1,7 +1,9 @@
 /**
- * The CRM creates players and nothing else. DL, Super, Master, TeamMate,
- * Platform and Party all live in diwine_admin — the normal/dummy split is a
- * toggle inside the one User form, not separate entries here.
+ * The Create tab makes platform users. DL, Super, Master, Platform and Party
+ * all live in diwine_admin.
+ *
+ * CRM teammates are not here: they are staff rather than players, and managing
+ * them is its own sidebar section (/teammates).
  */
 export type CreateEntityKey = "user";
 

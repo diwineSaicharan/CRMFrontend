@@ -5,6 +5,7 @@ import { useEffect, useState } from "react";
 import { fetchClients, type Client, type ClientEntityKey } from "@/lib/clients";
 import { CLIENT_DIRECTORY_CONFIGS } from "./client-directory.config";
 import { HeaderSlot } from "@/components/layout/HeaderSlot";
+import { useLiveEvents } from "@/lib/use-live-events";
 import { ClientDirectory } from "./ClientDirectory";
 import styles from "./ClientDirectory.module.css";
 
@@ -23,6 +24,13 @@ export function ClientsPage({ entity }: { entity: ClientEntityKey }) {
   const [query, setQuery] = useState("");
   const [parentRole, setParentRole] = useState("ALL");
   const [clients, setClients] = useState<Client[]>([]);
+
+  /**
+   * A player created anywhere — here or in the admin panel — appears without a
+   * reload. Both write user_master, so the notification comes from a database
+   * trigger rather than from whichever service made the change.
+   */
+  const liveTick = useLiveEvents({ clients: true });
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
@@ -46,7 +54,7 @@ export function ClientsPage({ entity }: { entity: ClientEntityKey }) {
     return () => {
       cancelled = true;
     };
-  }, [entity]);
+  }, [entity, liveTick]);
 
   const filtered = query.trim()
     ? clients.filter((client) =>

@@ -16,8 +16,10 @@ import {
   authApi,
   clearClientAuth,
   describeSessionEnd,
+  FULL_CRM_ACCESS,
   hasAuthFlag,
   type AuthUser,
+  type CrmPermissions,
 } from "@/lib/auth";
 import type { UserRole } from "@/lib/nav-config";
 
@@ -44,6 +46,16 @@ interface AuthContextValue {
   isAuthenticated: boolean;
   /** TEAMMATEs act with the role they were granted. */
   effectiveRole: UserRole | null;
+  /** Which CRM pages this account may reach. */
+  permissions: CrmPermissions;
+  /**
+   * False while a teammate's access is still unknown.
+   *
+   * "Unknown" and "none" have to be different: treating them the same showed a
+   * teammate the no-access screen for the whole first render after signing in,
+   * because only /profile carried the permissions and login did not.
+   */
+  permissionsKnown: boolean;
   login: (username: string, password: string) => Promise<AuthUser>;
   logout: () => Promise<void>;
   refreshUser: () => Promise<AuthUser | null>;
@@ -215,6 +227,28 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       isAuthenticated: status === "authenticated",
       effectiveRole:
         user?.role === "TEAMMATE" ? (user.teammateRole ?? null) : (user?.role ?? null),
+      /**
+       * What this account may reach. Only a TEAMMATE is restricted — everyone
+       * else administers the CRM, and gating them on a permission row would
+       * lock an admin out of their own panel if the row were ever missing.
+       *
+       * Until the profile resolves this is deliberately full access rather than
+       * none: the shell does not render before then, and defaulting to none
+       * would flash an empty sidebar at every reload.
+       */
+      permissions:
+        user?.role === "TEAMMATE"
+          ? (user.crmPermissions ?? {
+              clients: false,
+              create: false,
+              deposit: false,
+              withdrawal: false,
+              transaction: false,
+            })
+          : FULL_CRM_ACCESS,
+      // Anyone unrestricted is known immediately; a teammate is known once
+      // their permissions have actually arrived.
+      permissionsKnown: user?.role !== "TEAMMATE" || !!user.crmPermissions,
       login,
       logout,
       refreshUser,

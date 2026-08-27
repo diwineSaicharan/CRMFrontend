@@ -4,6 +4,7 @@ import { useCallback, useEffect, useMemo, useState } from "react";
 import { useSearchParams } from "next/navigation";
 
 import { HeaderSlot } from "@/components/layout/HeaderSlot";
+import { useLiveEvents } from "@/lib/use-live-events";
 import { getAllPlatforms, type Platform } from "@/lib/platforms";
 import {
   completedTransactionsApi,
@@ -42,12 +43,16 @@ export function CompletedTransactionsPage() {
   const [platforms, setPlatforms] = useState<Platform[]>([]);
   const [reloadKey, setReloadKey] = useState(0);
 
+  // A settlement in either panel adds a row here, so this list reacts to both
+  // queues rather than one.
+  const liveTick = useLiveEvents();
+
   /**
    * The result carries the filters it was fetched for, so "loading" is a
    * comparison at render time rather than a flag an effect has to set — the
    * same shape WorkingDwPage uses, and it keeps setState out of the effect.
    */
-  const requestKey = JSON.stringify({ tab, search, platformId, page, reloadKey });
+  const requestKey = JSON.stringify({ tab, search, platformId, page, reloadKey, liveTick });
   const [loaded, setLoaded] = useState<{
     key: string;
     rows: CompletedTransaction[];
@@ -120,7 +125,7 @@ export function CompletedTransactionsPage() {
     return () => {
       cancelled = true;
     };
-  }, [tab, search, platformId, page, reloadKey, requestKey]);
+  }, [tab, search, platformId, page, reloadKey, liveTick, requestKey]);
 
   const totalPages = pagination?.totalPages ?? 1;
   const total = pagination?.total ?? 0;

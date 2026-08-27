@@ -4,6 +4,7 @@ import { ClientsPage } from "@/components/clients/ClientsPage";
 import { CreatePage } from "@/components/create/CreatePage";
 import { CREATE_LABELS, type CreateEntityKey } from "@/components/create/create-nav.config";
 import { CompletedTransactionsPage } from "@/components/transactions/CompletedTransactionsPage";
+import { TeammatesPage } from "@/components/teammates/TeammatesPage";
 import { WorkingDwPage } from "@/components/working-dw/WorkingDwPage";
 
 /**
@@ -48,6 +49,9 @@ export default async function ShellRoute({ params }: PageProps<"/[...slug]">) {
 
     case "transactions":
       return <CompletedTransactionsPage />;
+
+    case "teammates":
+      return <TeammatesPage />;
 
     // The quick-create forms. QuickCreateProvider reads the path and shows the
     // sheet; these render what sits behind it, so a reload or a shared link

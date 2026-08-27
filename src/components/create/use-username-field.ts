@@ -6,6 +6,7 @@ import {
   checkUsernameAvailability,
   generateRandomUsername,
   USERNAME_MIN_LENGTH,
+  normalizeUsernameForStorage,
 } from "@/lib/username";
 
 /**
@@ -38,7 +39,17 @@ export interface UsernameFieldState {
   reset: () => void;
 }
 
-export function useUsernameField(): UsernameFieldState {
+export function useUsernameField(
+  /**
+   * Applied to every generated username, never to a hand-typed one.
+   *
+   * diwine_admin's create-teammate form appends `_tm`, so a teammate is
+   * recognisable by its name in a user list shared with players. Passing the
+   * suffix in keeps that convention with the form that needs it, rather than
+   * teaching the generator about roles.
+   */
+  suffix = "",
+): UsernameFieldState {
   const [username, setUsernameState] = useState("");
   const [isCheckingUsername, setIsCheckingUsername] = useState(false);
   const [usernameAvailable, setUsernameAvailable] = useState<boolean | null>(null);
@@ -64,12 +75,18 @@ export function useUsernameField(): UsernameFieldState {
     setUsernameSuggestions([]);
   }, []);
 
+  /** Suffixed, and re-trimmed so the result still satisfies the field's rules. */
+  const withSuffix = useCallback(
+    (value: string) => (suffix ? normalizeUsernameForStorage(value + suffix) : value),
+    [suffix],
+  );
+
   const generateFromFullName = useCallback(
     (fullName: string) => {
       const generated = generateRandomUsername(fullName);
-      if (generated) setGenerated(generated);
+      if (generated) setGenerated(withSuffix(generated));
     },
-    [setGenerated],
+    [setGenerated, withSuffix],
   );
 
   /**
@@ -83,11 +100,11 @@ export function useUsernameField(): UsernameFieldState {
       fullNameTimer.current = window.setTimeout(() => {
         if (fullName.length >= 3 && !dirtyRef.current) {
           const generated = generateRandomUsername(fullName);
-          if (generated) setGenerated(generated);
+          if (generated) setGenerated(withSuffix(generated));
         }
       }, FULLNAME_DEBOUNCE_MS);
     },
-    [setGenerated],
+    [setGenerated, withSuffix],
   );
 
   // Debounced availability check on the username itself. A value below the

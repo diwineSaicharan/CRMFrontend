@@ -2,6 +2,8 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
+
+import { useAuth } from "@/components/auth/AuthProvider";
 import { useMemo, useState } from "react";
 
 import {
@@ -107,9 +109,10 @@ export function Sidebar({
   onMouseLeave,
 }: SidebarProps) {
   const pathname = usePathname();
+  const { permissions } = useAuth();
   const sections = useMemo(
-    () => filterNavForRole(NAV_SECTIONS, userRole),
-    [userRole],
+    () => filterNavForRole(NAV_SECTIONS, userRole, permissions),
+    [userRole, permissions],
   );
 
   // Disclosure state only. The route decides what is *active*, so a menu can be

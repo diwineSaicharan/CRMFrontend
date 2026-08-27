@@ -3,6 +3,8 @@
 import { usePathname, useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 
+import { useAuth } from "@/components/auth/AuthProvider";
+import { useLiveEvents } from "@/lib/use-live-events";
 import { workingDwApi, type DwPendingCounts, type DwTab } from "@/lib/working-dw";
 import styles from "./DwTabSwitch.module.css";
 
@@ -61,6 +63,10 @@ const DW_TABS: Array<{
 export function DwTabSwitch() {
   const pathname = usePathname();
   const router = useRouter();
+  const { permissions } = useAuth();
+  // The badges are the most visible sign that a queue moved, so they follow the
+  // same pushes the queues do — including changes made in diwine_admin.
+  const liveTick = useLiveEvents();
   const [counts, setCounts] = useState<DwPendingCounts>({
     pendingDeposits: 0,
     pendingWithdrawals: 0,
@@ -83,12 +89,25 @@ export function DwTabSwitch() {
     return () => {
       cancelled = true;
     };
-  }, [pathname]);
+  }, [pathname, liveTick]);
 
   // Withdrawals is the only route that lights the right-hand side; everywhere
   // else the switch shows Deposit as the default landing side.
   const tab: DwTab = pathname === DW_PATHS.withdrawal ? "withdrawal" : "deposit";
   const isDeposit = tab === "deposit";
+
+  /**
+   * Only the queues this account holds. A teammate granted deposits alone was
+   * still shown Withdrawal here — the sidebar hid the page but this offered a
+   * route straight into it, which then refused them.
+   *
+   * With one side left the sliding indicator and the half-width geometry make
+   * no sense, so the switch renders as a single label instead; with none it
+   * does not render at all.
+   */
+  const visibleTabs = DW_TABS.filter((item) => permissions[item.id]);
+  if (visibleTabs.length === 0) return null;
+  const isSwitch = visibleTabs.length > 1;
 
   return (
     <div
@@ -99,16 +118,18 @@ export function DwTabSwitch() {
         " relative flex flex-none items-center rounded-[0.55rem] p-1"
       }
     >
-      <span
-        aria-hidden="true"
-        className={
-          styles.tabIndicator +
-          " pointer-events-none absolute top-1 bottom-1 left-1 w-[calc(50%-0.25rem)] rounded-[0.4rem]"
-        }
-        style={{ transform: isDeposit ? "none" : "translateX(100%)" }}
-      />
+      {isSwitch && (
+        <span
+          aria-hidden="true"
+          className={
+            styles.tabIndicator +
+            " pointer-events-none absolute top-1 bottom-1 left-1 w-[calc(50%-0.25rem)] rounded-[0.4rem]"
+          }
+          style={{ transform: isDeposit ? "none" : "translateX(100%)" }}
+        />
+      )}
 
-      {DW_TABS.map((item) => {
+      {visibleTabs.map((item) => {
         const isActive = tab === item.id;
         const pending = counts[item.countKey];
 
@@ -119,7 +140,11 @@ export function DwTabSwitch() {
             role="tab"
             aria-selected={isActive}
             onClick={() => router.push(item.href)}
-            className={SWITCH_BUTTON + " " + (isActive ? SWITCH_ON : SWITCH_OFF)}
+            className={
+              SWITCH_BUTTON +
+              " " +
+              (isActive || !isSwitch ? SWITCH_ON : SWITCH_OFF)
+            }
           >
             {item.label}
             {pending > 0 && (

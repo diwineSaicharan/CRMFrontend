@@ -13,6 +13,8 @@ import {
   type DwTab,
 } from "@/lib/working-dw";
 import { HeaderSlot } from "@/components/layout/HeaderSlot";
+import { useLiveEvents } from "@/lib/use-live-events";
+import { DwAssignToggle } from "./DwAssignToggle";
 import { DwStageCell } from "./DwActionMenu";
 import { DW_HERO_MASK, DW_TABLE_MASK } from "./icon-masks";
 import styles from "./WorkingDw.module.css";
@@ -95,6 +97,14 @@ export function WorkingDwPage({ tab }: { tab: DwTab }) {
   const [reloadKey, setReloadKey] = useState(0);
   const refresh = useCallback(() => setReloadKey((n) => n + 1), []);
 
+  /**
+   * Changes made anywhere — another teammate here, or a banker in
+   * diwine_admin — arrive as a push and reload this queue. Both panels write
+   * the same tables, so the notification comes from a database trigger rather
+   * than from whichever service happened to make the change.
+   */
+  const liveTick = useLiveEvents({ queue: mainTab });
+
   // The rows carry the tab they belong to, so "loading" is a comparison at
   // render time rather than a flag the effect has to set synchronously.
   useEffect(() => {
@@ -115,7 +125,7 @@ export function WorkingDwPage({ tab }: { tab: DwTab }) {
     return () => {
       cancelled = true;
     };
-  }, [mainTab, reloadKey]);
+  }, [mainTab, reloadKey, liveTick]);
 
   const isLoading = loaded?.tab !== mainTab;
   // Memoised so the empty-array branch does not produce a new identity each
@@ -140,7 +150,7 @@ export function WorkingDwPage({ tab }: { tab: DwTab }) {
     return () => {
       cancelled = true;
     };
-  }, [reloadKey]);
+  }, [reloadKey, liveTick]);
 
   const isFiltered = searchTerm.trim().length > 0;
 
@@ -325,24 +335,7 @@ export function WorkingDwPage({ tab }: { tab: DwTab }) {
                         className={index % 2 === 0 ? styles.rowAlt : undefined}
                       >
                         <td className={styles.colAssigned}>
-                          {/*
-                            Column, not row: your own name sits directly under
-                            your own toggle, while a teammate's name takes the
-                            toggle's place, so the cell keeps its width either way.
-                          */}
-                          <div className="inline-flex flex-col items-start gap-[3px]">
-                            {!request.assignedToUserName && (
-                              <label className="relative inline-flex h-5 w-10 shrink-0 cursor-pointer items-center rounded-full border border-[#29738c] bg-[#29738c]/[0.12] transition-colors duration-300 ease-[cubic-bezier(0.4,0,0.2,1)] dark:border-[#bde1ff] dark:bg-[#bde1ff]/[0.12]">
-                                <input type="checkbox" className="peer sr-only" />
-                                <span className="pointer-events-none ml-[2px] h-3.5 w-3.5 rounded-full bg-[#29738c] shadow-[0_2px_4px_rgba(0,0,0,0.1)] transition-[transform,background-color] duration-300 ease-[cubic-bezier(0.4,0,0.2,1)] peer-checked:translate-x-[20px] peer-checked:bg-white dark:bg-[#bde1ff] dark:peer-checked:bg-white" />
-                              </label>
-                            )}
-                            {request.assignedToUserName && (
-                              <span className="text-[11px] font-semibold text-headings dark:text-[#BDE1FF]">
-                                {request.assignedToUserName}
-                              </span>
-                            )}
-                          </div>
+                          <DwAssignToggle request={request} onDone={refresh} />
                         </td>
 
                         <td className={styles.colUser + " " + styles.isStrong}>

@@ -19,6 +19,8 @@ export interface OperationBank {
   id: string;
   bankName: string;
   accountNumber?: string | null;
+  ifscCode?: string | null;
+  upiId?: string | null;
   minDepositAmount?: number | null;
   maxDepositAmount?: number | null;
 }

@@ -4,7 +4,8 @@ import { useEffect, useRef, useState } from "react";
 
 import { useAuth } from "@/components/auth/AuthProvider";
 import { ApiError } from "@/lib/api";
-import { formatRupees, workingDwApi, type DwRequest, type DwTab } from "@/lib/working-dw";
+import { workingDwApi, type DwRequest, type DwTab } from "@/lib/working-dw";
+import { DwVerifyModal, type DwVerifySubmit } from "./DwVerifyModal";
 
 /**
  * The Banker / Admin stage cells on a queue row.
@@ -89,11 +90,10 @@ export function DwStageCell({
   onDone: () => void;
   classes: DwStageClasses;
 }) {
-  const { effectiveRole } = useAuth();
+  const { user, effectiveRole } = useAuth();
   const [open, setOpen] = useState(false);
   const [busy, setBusy] = useState(false);
   const [modal, setModal] = useState<Mode | null>(null);
-  const [reason, setReason] = useState("");
   const [error, setError] = useState<string | null>(null);
   const wrapRef = useRef<HTMLDivElement | null>(null);
 
@@ -121,7 +121,6 @@ export function DwStageCell({
     try {
       await action();
       setModal(null);
-      setReason("");
       setOpen(false);
       onDone();
     } catch (caught) {
@@ -133,20 +132,24 @@ export function DwStageCell({
     }
   };
 
-  const confirm = () => {
+  /**
+   * The modal has already validated and collected whatever this stage needs —
+   * UTR, ops bank and receipt for a banker verifying a withdrawal, a reason for
+   * a reject, nothing for the rest.
+   */
+  const submit = (payload: DwVerifySubmit) => {
     if (modal === "reject") {
-      if (!reason.trim()) {
-        setError("Please give a reason.");
-        return;
-      }
-      void run(() => workingDwApi.reject(request.id, { reason: reason.trim() }), "reject");
+      void run(
+        () => workingDwApi.reject(request.id, { reason: payload.remarks }),
+        "reject",
+      );
       return;
     }
     void run(
       () =>
         stage === "admin"
-          ? workingDwApi.adminApprove(request.id)
-          : workingDwApi.approve(request.id),
+          ? workingDwApi.adminApprove(request.id, payload)
+          : workingDwApi.approve(request.id, payload),
       "verify",
     );
   };
@@ -176,12 +179,33 @@ export function DwStageCell({
   }
 
   // ── Banker stage ───────────────────────────────────────────────────────
-  if (stage === "banker" && bankerVerified(request)) {
-    return pill(
-      "Verified",
-      classes.locked,
-      "Verified by the banker — waiting for admin approval",
-    );
+  if (stage === "banker") {
+    if (bankerVerified(request)) {
+      return pill(
+        "Verified",
+        classes.locked,
+        "Verified by the banker — waiting for admin approval",
+      );
+    }
+
+    /**
+     * Claimed by someone else: no actions, as the admin panel has it
+     * (canProcessRequest). The Assigned column already shows their name; this is
+     * what stops two people working the same request at once.
+     *
+     * An admin or operator is never blocked — they have to be able to unstick a
+     * request whose claimer has gone home.
+     */
+    const privileged = effectiveRole === "ADMIN" || effectiveRole === "OPERATOR";
+    const heldByOther =
+      !!request.assignedToUserId && request.assignedToUserId !== user?.id;
+    if (heldByOther && !privileged) {
+      return pill(
+        request.status === "PROCESSING" ? "Processing" : "Pending",
+        classes.locked,
+        `Assigned to ${request.assignedToUserName ?? "someone else"} — only they can process this request`,
+      );
+    }
   }
 
   const label =
@@ -245,7 +269,6 @@ export function DwStageCell({
             className={MENU_ITEM_REJECT}
             onClick={() => {
               setError(null);
-              setReason("");
               setModal("reject");
             }}
           >
@@ -256,140 +279,20 @@ export function DwStageCell({
       )}
 
       {modal && (
-        <DwConfirmModal
+        <DwVerifyModal
           mode={modal}
           stage={stage}
           request={request}
-          reason={reason}
-          error={error}
           busy={busy}
-          onReason={(value) => {
-            setReason(value);
-            if (error) setError(null);
-          }}
+          error={error}
+          onError={setError}
           onCancel={() => {
             setModal(null);
-            setReason("");
             setError(null);
           }}
-          onConfirm={confirm}
+          onSubmit={submit}
         />
       )}
-    </div>
-  );
-}
-
-/**
- * The review step before a stage decision.
- *
- * The admin panel's version also re-collects UTR, receipt and bank on a banker
- * verify. This one confirms instead: the CRM's approve endpoint accepts no such
- * fields — the request already carries the UTR it was raised with — and a form
- * whose input is silently discarded would be worse than no form. Reject sends
- * its reason, which the endpoint does accept.
- */
-function DwConfirmModal({
-  mode,
-  stage,
-  request,
-  reason,
-  error,
-  busy,
-  onReason,
-  onCancel,
-  onConfirm,
-}: {
-  mode: Mode;
-  stage: DwStage;
-  request: DwRequest;
-  reason: string;
-  error: string | null;
-  busy: boolean;
-  onReason: (value: string) => void;
-  onCancel: () => void;
-  onConfirm: () => void;
-}) {
-  const rejecting = mode === "reject";
-  const who = stage === "admin" ? "Admin" : "Banker";
-  const kind = request.type === "WITHDRAWAL" ? "withdrawal" : "deposit";
-
-  return (
-    <div
-      className="fixed inset-0 z-[1200] grid place-items-center bg-black/40 p-4 backdrop-blur-[2px]"
-      role="dialog"
-      aria-modal="true"
-      aria-label={`${who} ${mode} ${kind}`}
-      onClick={onCancel}
-    >
-      <div
-        className="w-full max-w-[420px] rounded-xl border border-[#9DBFBE] bg-white p-5 text-left shadow-xl dark:border-[#0062AD] dark:bg-[#0B3A63]"
-        onClick={(event) => event.stopPropagation()}
-      >
-        <h3 className="m-0 mb-1 text-[16px] font-semibold text-[#214055] dark:text-[#D8EEFF]">
-          {rejecting ? "Reject" : `${who} verify`} {kind}
-        </h3>
-        <p className="m-0 mb-4 text-[12.5px] text-[#6a95b9] dark:text-[#9ED4FF]/80">
-          {request.username || "—"} · {formatRupees(request.totalAmount ?? request.amount)}
-          {request.utrNumber ? ` · UTR ${request.utrNumber}` : ""}
-          {request.isDummyRequest ? " · root user" : ""}
-        </p>
-
-        {rejecting ? (
-          <>
-            <label
-              htmlFor={`dw-reason-${request.id}`}
-              className="mb-1 block text-[12px] font-medium text-[#214055] dark:text-[#BDE1FF]"
-            >
-              Reason for rejection
-            </label>
-            <textarea
-              id={`dw-reason-${request.id}`}
-              autoFocus
-              rows={3}
-              value={reason}
-              onChange={(event) => onReason(event.target.value)}
-              placeholder="Why is this being rejected?"
-              className="w-full resize-none rounded-[0.35rem] border border-[#9DBFBE] px-2 py-1.5 text-[12.5px] text-[#214055] outline-none dark:border-[#0062AD] dark:bg-[#08294A] dark:text-[#BDE1FF]"
-            />
-          </>
-        ) : (
-          <p className="m-0 text-[12.5px] text-[#214055] dark:text-[#BDE1FF]">
-            {stage === "admin"
-              ? "Final sign-off. Chips move when you confirm."
-              : kind === "withdrawal"
-                ? "Confirm the payment has been made to the user."
-                : request.isDummyRequest
-                  ? "Confirm the money was received. An admin still has to approve it."
-                  : "Confirm the money was received. Chips move when you confirm."}
-          </p>
-        )}
-
-        {error && (
-          <p className="mt-2 mb-0 text-[11.5px] text-[#c5221f] dark:text-[#ff8a80]">{error}</p>
-        )}
-
-        <div className="mt-4 flex justify-end gap-2">
-          <button
-            type="button"
-            onClick={onCancel}
-            disabled={busy}
-            className="cursor-pointer rounded-md border border-[#9DBFBE] px-3 py-1.5 text-[12.5px] text-[#214055] disabled:opacity-60 dark:border-[#0062AD] dark:text-[#BDE1FF]"
-          >
-            Cancel
-          </button>
-          <button
-            type="button"
-            onClick={onConfirm}
-            disabled={busy || (rejecting && !reason.trim())}
-            className={
-              "cursor-pointer rounded-md px-3 py-1.5 text-[12.5px] font-medium text-white disabled:opacity-60 " +
-              (rejecting ? "bg-[#c5221f]" : "bg-[#0e7c5a]")
-            }
-          >
-            {busy ? "Working…" : rejecting ? "Confirm reject" : "Confirm"}
-          </button>
-        </div>
-      </div>
     </div>
   );
 }

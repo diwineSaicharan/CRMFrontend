@@ -4090,3 +4090,126 @@
     &[aria-selected='true'] { color: #d8eeff; }
   }
 }
+
+/* ── CRM teammate access picker ──────────────────────────────────────────
+   Cards rather than a checkbox list: each grant decides what someone can do
+   with real money, so the label alone ("Deposits") does not say enough. */
+.user-form-scope .tm-access-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(258px, 1fr));
+  gap: 10px;
+  padding: 4px;
+}
+
+.user-form-scope .tm-access-card {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  padding: 12px;
+  text-align: left;
+  cursor: pointer;
+  border-radius: 10px;
+  border: 1px solid #cfe0e0;
+  background: rgba(255, 255, 255, 0.55);
+  transition: border-color 160ms, background 160ms, box-shadow 160ms;
+}
+
+.user-form-scope .tm-access-card:hover {
+  border-color: #9dbfbe;
+  background: rgba(255, 255, 255, 0.8);
+}
+
+.user-form-scope .tm-access-card.is-on {
+  border-color: #34a853;
+  background: rgba(52, 168, 83, 0.09);
+  box-shadow: inset 3px 0 0 #34a853;
+}
+
+.user-form-scope .tm-access-icon {
+  flex: none;
+  font-size: 20px;
+  color: #50708d;
+}
+
+.user-form-scope .tm-access-card.is-on .tm-access-icon {
+  color: #1e7c47;
+}
+
+.user-form-scope .tm-access-copy {
+  display: flex;
+  min-width: 0;
+  flex: 1 1 auto;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.user-form-scope .tm-access-label {
+  font-size: 13.5px;
+  font-weight: 600;
+  color: #214055;
+}
+
+.user-form-scope .tm-access-desc {
+  font-size: 11.5px;
+  line-height: 1.35;
+  color: #6a95b9;
+}
+
+.user-form-scope .tm-access-tick {
+  flex: none;
+  font-size: 19px;
+  color: #b6cbcb;
+}
+
+.user-form-scope .tm-access-card.is-on .tm-access-tick {
+  color: #34a853;
+}
+
+/* Dark mode.
+   `.dark .user-form-scope`, not `:global(.dark)`: this is a plain stylesheet,
+   not a CSS module, so `:global()` is invalid here and the whole rule is
+   dropped — which is what left these cards showing light colours on the dark
+   page. The values are the ones this file already uses for a raised panel
+   (see .root-toggle-row), so the picker matches the fields above it. */
+.dark .user-form-scope {
+  .tm-access-card {
+    border-color: rgba(0, 145, 255, 0.2);
+    background: rgba(0, 145, 255, 0.08);
+  }
+
+  .tm-access-card:hover {
+    border-color: #0062ad;
+    background: rgba(0, 107, 189, 0.16);
+  }
+
+  .tm-access-card.is-on {
+    border-color: #34a853;
+    background: rgba(52, 168, 83, 0.14);
+  }
+
+  .tm-access-label {
+    color: #d8eeff;
+  }
+
+  /* The reason for this pass: #4e8dc1 on the dark panel was barely legible.
+     This is the same secondary ink .root-toggle-sub uses. */
+  .tm-access-desc {
+    color: rgba(158, 212, 255, 0.75);
+  }
+
+  .tm-access-icon {
+    color: #9ed4ff;
+  }
+
+  .tm-access-card.is-on .tm-access-icon {
+    color: #6ee7a0;
+  }
+
+  .tm-access-tick {
+    color: rgba(158, 212, 255, 0.45);
+  }
+
+  .tm-access-card.is-on .tm-access-tick {
+    color: #34a853;
+  }
+}

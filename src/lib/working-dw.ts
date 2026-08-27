@@ -27,6 +27,11 @@ export interface DwRequest {
   closingBalance?: number | null;
   /** DEPOSIT | WITHDRAWAL, as stored on the row. */
   type?: string;
+  /** Shown in the verification modal's detail grid. */
+  mobile?: string | null;
+  bankName?: string | null;
+  bankAccountNumber?: string | null;
+  bankIfsc?: string | null;
   assignedToUserId?: string | null;
   assignedToUserName?: string | null;
   verifiedBy?: string | null;
@@ -57,6 +62,7 @@ export const workingDwApi = {
   release: (requestId: string) =>
     api.put<ApiResponse<DwRequest>>(`${BASE}/${requestId}/release`, {}),
 
+  /** body: { remarks?, utrNumber?, bankId?, receiptImage? } — see DwVerifyModal. */
   approve: (requestId: string, body: Record<string, unknown> = {}) =>
     api.put<ApiResponse<DwRequest>>(`${BASE}/${requestId}/approve`, body),
 
