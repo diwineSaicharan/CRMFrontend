@@ -7,6 +7,7 @@ import {
   CREATE_NAV_OPTIONS,
   type CreateEntityKey,
 } from "./create-nav.config";
+import { HeaderSlot } from "@/components/layout/HeaderSlot";
 import { CreateUserForm } from "./CreateUserForm";
 
 /**
@@ -39,19 +40,18 @@ const NAV_ITEM_ACTIVE =
 export function CreatePage({ entity }: { entity: CreateEntityKey }) {
   return (
     <div className="flex min-h-0 w-full min-w-0 flex-1 flex-col overflow-hidden">
-      {/* ── toolbar ──────────────────────────────────────────────────────── */}
-      {/* `padding: 0 0 10px` here, but the >=1440px rule carries `!important`
-          and tightens it to 0.6rem, so it wins on a desktop viewport. */}
-      <div className="block min-w-0 shrink-0 pb-2.5 min-[1440px]:pb-[0.6rem]">
-        <div className="flex w-full min-w-0 items-center gap-5">
-          {/* Base `.clients-search-heading` metrics: the 15px/leading-none
-              variant is scoped to `.clients-section-active` and does not reach
-              the create toolbar. The 0.7rem indent above 1440px is global. */}
-          <h2 className="m-0 mt-2.5 shrink-0 text-[17px] leading-[2.2] font-medium whitespace-nowrap text-headings min-[1440px]:pl-[0.7rem] dark:text-[#bde1ff]">
+      {/* ── toolbar ──────────────────────────────────────────────────────────
+          In the shell header, so the heading shares the row with the global
+          Deposit / Withdrawal switch rather than occupying one of its own.
+          Line-height drops to `none` here: `leading-[2.2]` existed to give the
+          heading its own band, which the header row now provides. */}
+      <HeaderSlot>
+        <div className="flex w-full min-w-0 items-center gap-5 min-[1440px]:pl-[0.7rem]">
+          <h2 className="m-0 shrink-0 text-[17px] leading-none font-medium whitespace-nowrap text-headings dark:text-[#bde1ff]">
             Create {CREATE_LABELS[entity]}
           </h2>
         </div>
-      </div>
+      </HeaderSlot>
 
       {/* ── glass card: type nav + form ──────────────────────────────────── */}
       <div className="grid h-auto min-h-0 min-w-0 flex-1 grid-cols-[15rem_minmax(0,1fr)] gap-x-[15px] gap-y-0 overflow-hidden rounded-2xl border border-white bg-white/30 p-4 shadow-[0_0_0_1px_rgba(255,255,255,0.5)] backdrop-blur-[10px] max-lg:flex max-lg:flex-col dark:border-[rgba(0,145,255,0.15)] dark:bg-transparent dark:shadow-[0_0_0_1px_rgb(0,145,255,0.15)]">

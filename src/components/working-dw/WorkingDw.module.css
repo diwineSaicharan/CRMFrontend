@@ -64,10 +64,6 @@
 
 /* Top bar fills the 64px band linear-next puts above content-body, less
    whatever the workspace already contributes as padding. */
-.topbar {
-  height: calc(64px - var(--shell-content-top-padding, 10px));
-}
-
 /* Re-mounted on every tab change (keyed by the tab), so the queue fades up
    instead of snapping between two different column sets. */
 .queueSwap {

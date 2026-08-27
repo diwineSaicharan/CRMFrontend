@@ -11,6 +11,7 @@ import {
   type DwRequest,
   type DwTab,
 } from "@/lib/working-dw";
+import { HeaderSlot } from "@/components/layout/HeaderSlot";
 import { DwActionMenu } from "./DwActionMenu";
 import { DW_HERO_MASK, DW_TABLE_MASK } from "./icon-masks";
 import styles from "./WorkingDw.module.css";
@@ -129,44 +130,48 @@ export function WorkingDwPage({ tab }: { tab: DwTab }) {
 
   return (
     <div className={styles.page + " flex min-h-0 w-full min-w-0 flex-1 flex-col"}>
-      {/* ── top bar ──────────────────────────────────────────────────────── */}
-      <header
-        className={
-          styles.topbar + " box-border flex flex-none items-center gap-2.5 px-3"
-        }
-      >
-        <h2 className="m-0 me-[22px] flex-none text-[16px] leading-none font-medium whitespace-nowrap text-[var(--dw-headings)]">
-          {pageTitle}
-        </h2>
+      {/* ── top bar ──────────────────────────────────────────────────────────
+          Rendered into the shell header so the title and search share the row
+          with the global Deposit / Withdrawal switch instead of stacking a
+          second band beneath it.
 
-        <div className={styles.search + " relative min-w-0 flex-[0_1_384px]"}>
-          <span
-            aria-hidden="true"
-            className="material-icons pointer-events-none absolute top-1/2 left-3.5 -translate-y-1/2 text-[17px] text-[var(--dw-muted)]"
-          >
-            search
-          </span>
-          <input
-            type="search"
-            value={searchTerm}
-            onChange={(event) => setSearchTerm(event.target.value)}
-            aria-label={`Search ${pageTitle}`}
-            placeholder="Search by user, master, or UTR..."
-            autoComplete="off"
-          />
-          {isFiltered && (
-            <button
-              type="button"
-              onClick={() => setSearchTerm("")}
-              aria-label="Clear search"
-              className="absolute top-1/2 right-2 grid h-6 w-6 -translate-y-1/2 place-items-center rounded-full text-[var(--dw-muted)] hover:text-[var(--dw-headings)]"
+          The wrapper keeps `styles.page`: every --dw-* token is declared on
+          that class, and the portal moves this subtree out of the page element
+          that would otherwise provide them. */}
+      <HeaderSlot>
+        <div className={styles.page + " flex w-full min-w-0 items-center gap-2.5"}>
+          <h2 className="m-0 me-[22px] flex-none text-[16px] leading-none font-medium whitespace-nowrap text-[var(--dw-headings)]">
+            {pageTitle}
+          </h2>
+
+          <div className={styles.search + " relative min-w-0 flex-[0_1_384px]"}>
+            <span
+              aria-hidden="true"
+              className="material-icons pointer-events-none absolute top-1/2 left-3.5 -translate-y-1/2 text-[17px] text-[var(--dw-muted)]"
             >
-              &times;
-            </button>
-          )}
+              search
+            </span>
+            <input
+              type="search"
+              value={searchTerm}
+              onChange={(event) => setSearchTerm(event.target.value)}
+              aria-label={`Search ${pageTitle}`}
+              placeholder="Search by user, master, or UTR..."
+              autoComplete="off"
+            />
+            {isFiltered && (
+              <button
+                type="button"
+                onClick={() => setSearchTerm("")}
+                aria-label="Clear search"
+                className="absolute top-1/2 right-2 grid h-6 w-6 -translate-y-1/2 place-items-center rounded-full text-[var(--dw-muted)] hover:text-[var(--dw-headings)]"
+              >
+                &times;
+              </button>
+            )}
+          </div>
         </div>
-
-      </header>
+      </HeaderSlot>
 
       {/*
         Shell mirrors linear-next's `content-body` recipe exactly: rounded-xl +
