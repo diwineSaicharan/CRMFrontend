@@ -19,14 +19,7 @@ const PARENT_ROLES = [
   { value: "DL", label: "DL" },
 ];
 
-export function ClientsPage({
-  entity,
-  selectedId,
-}: {
-  entity: ClientEntityKey;
-  /** From /clients/[userId]; absent at /clients, where the first row stands in. */
-  selectedId?: string;
-}) {
+export function ClientsPage({ entity }: { entity: ClientEntityKey }) {
   const [query, setQuery] = useState("");
   const [parentRole, setParentRole] = useState("ALL");
   const [clients, setClients] = useState<Client[]>([]);
@@ -144,7 +137,6 @@ export function ClientsPage({
           entity={entity}
           clients={filtered}
           loading={loading}
-          selectedId={selectedId}
           key={CLIENT_DIRECTORY_CONFIGS[entity].key}
         />
       </div>

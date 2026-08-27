@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { useMemo, useState } from "react";
-import { useRouter } from "next/navigation";
+import { usePathname } from "next/navigation";
 
 import type { Client, ClientEntityKey } from "@/lib/clients";
 import {
@@ -73,18 +73,18 @@ export interface ClientDirectoryProps {
   entity: ClientEntityKey;
   clients: Client[];
   loading?: boolean;
-  /** The id in the URL. Absent means "nothing picked yet". */
-  selectedId?: string;
 }
 
-export function ClientDirectory({
-  entity,
-  clients,
-  loading,
-  selectedId,
-}: ClientDirectoryProps) {
+export function ClientDirectory({ entity, clients, loading }: ClientDirectoryProps) {
   const config = CLIENT_DIRECTORY_CONFIGS[entity];
-  const router = useRouter();
+
+  // The URL is the single source of truth for the selection, read here rather
+  // than passed down from the route, because picking a client updates it with
+  // history.pushState — see the click handler below.
+  const pathname = usePathname();
+  const selectedId = pathname.startsWith("/clients/")
+    ? decodeURIComponent(pathname.slice("/clients/".length).split("/")[0])
+    : undefined;
 
   const [sortAsc, setSortAsc] = useState(false);
 
@@ -226,7 +226,20 @@ export function ClientDirectory({
               <button
                 key={client.id}
                 type="button"
-                onClick={() => router.push(`/clients/${encodeURIComponent(client.id)}`)}
+                onClick={() =>
+                  // Not router.push: that is a route change, so this page
+                  // unmounts and remounts, the client list refetches, and the
+                  // whole directory drops to "Loading data…" just to highlight
+                  // a different row. pushState updates the URL in place and
+                  // Next syncs usePathname with it, so only the selection
+                  // changes. A direct load of /clients/[userId] still works —
+                  // that route exists and this reads the same pathname.
+                  window.history.pushState(
+                    null,
+                    "",
+                    `/clients/${encodeURIComponent(client.id)}`,
+                  )
+                }
                 aria-current={selected?.id === client.id ? "true" : undefined}
                 className={
                   "mb-px flex w-full cursor-pointer items-center rounded-md border-0 bg-transparent px-3 py-2.5 text-left transition-[background] duration-0 hover:bg-accent/10 " +

@@ -1,14 +1,13 @@
 import { ClientsPage } from "@/components/clients/ClientsPage";
 
 /**
- * A client selected by id. The directory renders exactly as it does at
- * /clients, with this row picked — so a selection is linkable, survives a
- * reload, and the back button walks through the clients you looked at.
+ * A client selected by id — for a direct load, a reload, or a shared link.
  *
- * This segment is a real id, unlike the `[type]` it replaced, which guarded a
- * single valid value.
+ * Clicking a row inside the app does not route here: it updates the URL with
+ * history.pushState so the directory is not torn down and refetched just to
+ * move the highlight. The directory reads the selection off the pathname
+ * either way, so both paths land on the same state.
  */
-export default async function ClientRoute({ params }: PageProps<"/clients/[userId]">) {
-  const { userId } = await params;
-  return <ClientsPage entity="users" selectedId={decodeURIComponent(userId)} />;
+export default function ClientRoute() {
+  return <ClientsPage entity="users" />;
 }
