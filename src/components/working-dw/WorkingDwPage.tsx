@@ -399,30 +399,37 @@ export function WorkingDwPage({ tab }: { tab: DwTab }) {
                           </DwActionMenu>
                         </td>
 
-                        {/* Both kinds need an admin sign-off: settlement happens
-                            at admin-approve, not at the banker's verify. */}
+                        {/* Admin sign-off is a root ("dummy") request's second
+                            stage. A normal request is settled by the banker's
+                            approve, so it shows a dash — same as diwine_admin. */}
                         <td className={styles.colAdmin}>
-                          <DwActionMenu
-                            stage="admin"
-                            request={request}
-                            tab={mainTab}
-                            onDone={refresh}
-                            pillClassName={STAGE_PILL + " " + STAGE_INK}
-                            lockedClassName={STAGE_LOCKED}
-                            actionClassName={STAGE_ACTION}
-                          >
-                            <span>
-                              {request.adminApprovalStatus === "APPROVED"
-                                ? "Approved"
-                                : "Pending"}
-                            </span>
-                            <span
-                              aria-hidden="true"
-                              className="material-icons text-[17px] leading-none opacity-60"
+                          {request.isDummyRequest ? (
+                            <DwActionMenu
+                              stage="admin"
+                              request={request}
+                              tab={mainTab}
+                              onDone={refresh}
+                              pillClassName={STAGE_PILL + " " + STAGE_INK}
+                              lockedClassName={STAGE_LOCKED}
+                              actionClassName={STAGE_ACTION}
                             >
-                              expand_more
+                              <span>
+                                {request.adminApprovalStatus === "APPROVED"
+                                  ? "Approved"
+                                  : "Pending"}
+                              </span>
+                              <span
+                                aria-hidden="true"
+                                className="material-icons text-[17px] leading-none opacity-60"
+                              >
+                                expand_more
+                              </span>
+                            </DwActionMenu>
+                          ) : (
+                            <span className="text-[12px] text-[#9BB4C7] dark:text-[#4E8DC1]">
+                              —
                             </span>
-                          </DwActionMenu>
+                          )}
                         </td>
                       </tr>
                     ))}

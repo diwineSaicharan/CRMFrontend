@@ -16,8 +16,10 @@ import { workingDwApi, type DwRequest, type DwTab } from "@/lib/working-dw";
  *   withdrawal, PENDING    process -> debits the player, awaits the payment
  *   withdrawal, PROCESSING verify -> confirms the banker has paid out
  *
- * Both kinds then need the admin sign-off, which is where the money actually
- * moves — verify only records who checked it.
+ * For a normal request that verify IS the settlement — chips move and the
+ * ledgers are written there, exactly as diwine_admin does it. Only a root
+ * ("dummy") request has a second, admin sign-off, so a normal row's Admin cell
+ * shows a dash.
  */
 
 export type DwStage = "banker" | "admin";
@@ -41,7 +43,7 @@ const REJECT: MenuItem = {
 
 const VERIFY: MenuItem = {
   key: "approve",
-  label: "Verify",
+  label: "Approve",
   run: (id) => workingDwApi.approve(id),
 };
 
@@ -65,9 +67,11 @@ function itemsFor(
   const status = String(request.status ?? "PENDING").toUpperCase();
 
   if (stage === "admin") {
-    // Both kinds need this second sign-off: the backend settles a normal
-    // request at admin-approve, not at verify. Hiding the stage for normal
-    // rows left a verified request stranded with no way to finish it.
+    // Root requests only — a normal one is already settled by the banker's
+    // approve, and the backend refuses admin-approve on it.
+    if (!request.isDummyRequest) {
+      return { items: [], blocked: "Normal requests are settled at approval." };
+    }
     if (!request.verifiedBy) {
       return { items: [], blocked: "Waiting for the banker to verify first." };
     }
