@@ -67,6 +67,12 @@ export function AuthProvider({ children }: { children: ReactNode }) {
    * Starts as "loading" only when there is a flag worth verifying. With no
    * flag we already know the answer, so there is nothing to wait for — and no
    * effect needs to write that back.
+   *
+   * This does read localStorage, so the server seeds "unauthenticated" while a
+   * signed-in browser seeds "loading". That divergence is invisible by design:
+   * RequireAuth renders one identical placeholder for both, and every other
+   * consumer only asks whether the status is "authenticated", which is false
+   * either way. Give the two states different markup and hydration will break.
    */
   const [status, setStatus] = useState<AuthStatus>(() =>
     hasAuthFlag() ? "loading" : "unauthenticated",

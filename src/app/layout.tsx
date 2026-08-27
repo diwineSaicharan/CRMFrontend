@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import { Roboto_Condensed } from "next/font/google";
+import Script from "next/script";
 import "./globals.css";
 
 import { AuthProvider } from "@/components/auth/AuthProvider";
@@ -33,8 +34,17 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
           href="https://fonts.googleapis.com/icon?family=Material+Icons"
           rel="stylesheet"
         />
-        {/* Applies the stored theme before first paint so dark mode never flashes. */}
-        <script dangerouslySetInnerHTML={{ __html: themeInitScript }} />
+        {/* Applies the stored theme before first paint so dark mode never
+            flashes. Via next/script rather than a bare <script>: React 19 warns
+            that a script rendered inside a component never executes on a client
+            render, and beforeInteractive is the strategy that puts it in the
+            server HTML ahead of any Next module — which is what the anti-flash
+            behaviour actually depends on. An inline script needs an id. */}
+        <Script
+          id="theme-init"
+          strategy="beforeInteractive"
+          dangerouslySetInnerHTML={{ __html: themeInitScript }}
+        />
       </head>
       <body className="min-h-full">
         {/* Auth wraps every route, login included: the login screen needs to

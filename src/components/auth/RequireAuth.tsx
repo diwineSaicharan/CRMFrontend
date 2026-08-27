@@ -19,15 +19,20 @@ export function RequireAuth({ children }: { children: ReactNode }) {
   }, [status, router]);
 
   if (status !== "authenticated") {
-    // One placeholder for both states: rendering the shell before the profile
-    // resolves would flash a signed-in layout at someone who is signed out.
+    // One placeholder for both states, and it must render identical markup for
+    // both. "loading" vs "unauthenticated" is decided by a localStorage flag
+    // the server cannot read, so the server says unauthenticated while a
+    // signed-in browser says loading. Two different strings here made that
+    // difference visible to React as a hydration mismatch on every load;
+    // rendering the shell before the profile resolves would also flash a
+    // signed-in layout at someone who is signed out.
     return (
       <div
         className="fixed inset-0 grid place-items-center text-sm text-[#6A95B9]"
         role="status"
         aria-live="polite"
       >
-        {status === "loading" ? "Checking your session…" : "Redirecting to sign in…"}
+        Checking your session…
       </div>
     );
   }
