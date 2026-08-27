@@ -69,10 +69,20 @@ export async function apiFetch<T>(path: string, init: RequestInit = {}): Promise
       headers,
       credentials: "include",
     });
-  } catch {
+  } catch (cause) {
     // Server unreachable — status 0 mirrors Angular's HttpErrorResponse, which
     // the login screen already distinguishes from a rejected credential.
-    throw new ApiError(0, "Unable to reach the server");
+    //
+    // Outside production the underlying reason is kept: "Unable to reach the
+    // server" on its own cannot tell a stopped backend from a CORS rejection,
+    // a blocked request or an aborted one, and they need very different fixes.
+    const detail =
+      process.env.NODE_ENV === "production"
+        ? ""
+        : cause instanceof Error && cause.message
+          ? ` (${cause.name}: ${cause.message})`
+          : "";
+    throw new ApiError(0, `Unable to reach the server${detail}`);
   }
 
   const text = await res.text();
