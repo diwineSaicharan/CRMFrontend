@@ -100,6 +100,16 @@ export const dwApi = {
       input,
     ),
 
+  /**
+   * Reads the UTR off a receipt. Never rejects — an unreadable or
+   * unconfigured receipt returns `utr: null` so the field can be typed.
+   */
+  extractReceiptUtr: (image: string, paymentMode?: string) =>
+    api.post<ApiResponse<{ utr: string | null; reason?: string }>>(
+      `${BASE}/ocr/extract`,
+      { image, paymentMode },
+    ),
+
   createRequest: (input: Record<string, unknown>) =>
     api.post<ApiResponse<{ id: string }>>(`${BASE}/create`, input),
 };

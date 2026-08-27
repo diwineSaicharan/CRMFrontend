@@ -136,6 +136,8 @@ function QuickCreateForm({
   const [newUtr, setNewUtr] = useState("");
   const [newReceipt, setNewReceipt] = useState<string | null>(null);
   const [newReceiptName, setNewReceiptName] = useState("");
+  const [newUtrReading, setNewUtrReading] = useState(false);
+  const [newUtrNote, setNewUtrNote] = useState("");
   const [leadSources, setLeadSources] = useState<string[]>([]);
 
   // Deposit
@@ -263,9 +265,33 @@ function QuickCreateForm({
   const onNewReceiptSelected = (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
     if (!file) return;
+
     setNewReceiptName(file.name);
+    setNewUtrNote("");
+
     const reader = new FileReader();
-    reader.onload = () => setNewReceipt(String(reader.result ?? ""));
+    reader.onload = () => {
+      const dataUrl = String(reader.result ?? "");
+      setNewReceipt(dataUrl);
+
+      // Same endpoint diwine_admin uses to read a UTR off a receipt. Only ever
+      // fills an empty field — a typed UTR is never overwritten — and a failure
+      // is a note, not an error, because the field can always be filled by hand.
+      setNewUtrReading(true);
+      dwApi
+        .extractReceiptUtr(dataUrl, "UPI")
+        .then((res) => {
+          const found = res.data?.utr;
+          if (found) {
+            setNewUtr((current) => current || found);
+            setNewUtrNote("UTR read from the receipt");
+          } else {
+            setNewUtrNote(res.data?.reason ?? "No UTR found — enter it manually");
+          }
+        })
+        .catch(() => setNewUtrNote("Could not read the receipt — enter the UTR manually"))
+        .finally(() => setNewUtrReading(false));
+    };
     reader.readAsDataURL(file);
   };
 
@@ -362,7 +388,6 @@ function QuickCreateForm({
         [newBankId, "Our Bank Name"],
         [newReceipt, "Upload Image"],
         [newDepositAmount.trim(), "Deposit Amount"],
-        [newBonus.trim(), "Bonus"],
         [newUtr.trim(), "UTR"],
       ].find(([value]) => !value);
 
@@ -790,6 +815,14 @@ function QuickCreateForm({
                           onChange={onNewReceiptSelected}
                         />
                       </label>
+                      {newReceipt && (
+                        // eslint-disable-next-line @next/next/no-img-element
+                        <img
+                          src={newReceipt}
+                          alt="Receipt"
+                          className="mt-2 max-h-40 rounded-[5px] border border-white/60"
+                        />
+                      )}
                     </Field>
 
                     <Field label="Deposit Amount" required>
@@ -804,7 +837,7 @@ function QuickCreateForm({
                       />
                     </Field>
 
-                    <Field label="Bonus" required>
+                    <Field label="Bonus">
                       <input
                         type="number"
                         inputMode="decimal"
@@ -812,7 +845,7 @@ function QuickCreateForm({
                         className={FIELD_CONTROL}
                         value={newBonus}
                         onChange={(event) => setNewBonus(event.target.value)}
-                        placeholder="Enter bonus"
+                        placeholder="Optional"
                       />
                     </Field>
 
@@ -822,9 +855,14 @@ function QuickCreateForm({
                         className={FIELD_CONTROL}
                         value={newUtr}
                         onChange={(event) => setNewUtr(event.target.value)}
-                        placeholder="Enter UTR"
+                        placeholder="Enter UTR digits only"
                         autoComplete="off"
                       />
+                      {(newUtrReading || newUtrNote) && (
+                        <p className="mt-1 font-condensed text-[12px] leading-none text-[#1d4268] opacity-75 dark:text-[rgba(158,212,255,0.75)]">
+                          {newUtrReading ? "Reading the receipt…" : newUtrNote}
+                        </p>
+                      )}
                     </Field>
 
                     <Field label="Total Deposit Amount">

@@ -72,7 +72,7 @@ export function LoginForm() {
       }
     >
       <div className="content-body group/content relative isolate m-auto h-auto w-full max-w-md flex-none overflow-hidden rounded-xl border-[7px] border-transparent bg-white/30 shadow-[0_0_0_1px_rgba(255,255,255,0.5)] dark:bg-[#0091ff0d] dark:shadow-[0_0_0_1px_rgb(0,145,255,0.15)]">
-        <div className="p-7">
+        <div className="p-7 bg-[#F1F5F6]">
           <h1 className="mb-1 text-lg font-medium text-headings">
             Welcome to StakeBazzaar CRM
           </h1>
